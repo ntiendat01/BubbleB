@@ -39,6 +39,27 @@ TASKS M0 chỉ yêu cầu "provider settings route". Kho bí mật Keystore thu�
 ## ADR-013: Room `exportSchema = false` cho skeleton — accepted (M0)
 Schema v1 chỉ có bảng `app_profile` tối thiểu (packageName, isExcluded, updatedAtMs). Khi M5 thêm persona sẽ bật export schema vào `app/schemas/` và viết migration v1→v2 có test.
 
+## ADR-014: Ẩn bong bóng = gỡ hẳn view khỏi WindowManager — accepted (M1)
+Khi bị ẩn (app bị loại trừ, khóa màn hình, tắt bong bóng, service ngắt) `OverlayController` gọi `removeViewImmediate`, dispose composition và hủy lifecycle owner, thay vì `View.GONE`. Không để lại cửa sổ vô hình có thể chặn chạm. Mỗi lần hiện lại tạo ComposeView + owner mới (đây là "attach/detach cycle" trong gate M1).
+
+## ADR-015: Xác định app tiền cảnh từ package của root cửa sổ active — accepted (M1)
+Trên `TYPE_WINDOW_STATE_CHANGED` service chỉ đọc `rootInActiveWindow.packageName` (không đọc text/node con) và dùng `event.packageName` làm dự phòng. Nếu root null và event đến từ chính app (overlay), bỏ qua để tránh tự ẩn. Package rỗng/không rõ → ẩn (fail closed). Không dùng `flagRetrieveInteractiveWindows`.
+
+## ADR-016: Danh sách ẩn mặc định — accepted, best-effort (M1)
+Luôn ẩn trên: chính app, SystemUI (màn hình khóa/thanh thông báo), hộp thoại cấp quyền/cài đặt gói, và một danh sách nhỏ app nhạy cảm nhận diện được (authenticator, trình quản lý mật khẩu, ví, một số ngân hàng/ví VN). Package ID phải được kiểm tra trên thiết bị thật; danh sách không thay thế cấu hình loại trừ của người dùng (Room, UI ở M5 — M1 đã nối luồng `excludedPackages` từ Room vào policy).
+
+## ADR-017: Điều kiện hiện bong bóng — accepted (M1)
+Bong bóng chỉ hiện khi: service thực sự connected **và** người dùng đã đồng ý thông báo phiên bản hiện tại **và** công tắc "Bật bong bóng" bật **và** không khóa màn hình **và** app tiền cảnh không bị loại trừ. Công tắc mặc định bật, nhưng vì cần cả đồng ý + bật Trợ năng thủ công nên không có bong bóng nào xuất hiện ngoài ý muốn. Rút lại đồng ý → bong bóng ẩn ngay.
+
+## ADR-018: Chạm bong bóng ở M1 không đọc màn hình — accepted (M1)
+M1 là proof-of-concept: chạm chỉ hiện Toast thông báo; không capture, không mở panel, không gọi mạng (capture thuộc M2). `onInterrupt` không có việc gì để hủy ở M1; từ M2 sẽ hủy job capture/LLM tại đây.
+
+## ADR-019: Kéo thả dùng toạ độ raw qua `View.OnTouchListener` — accepted (M1)
+Delta của Compose pointer input tính theo toạ độ cục bộ của cửa sổ đang di chuyển nên bị nhiễu; vì vậy kéo thả dùng `MotionEvent.rawX/rawY` trong `BubbleDragTracker` (thuần Kotlin, có unit test). Compose chỉ vẽ bong bóng và cung cấp nhãn TalkBack `Mở ContextBubble` + hành động click. Cửa sổ dùng `FLAG_NOT_FOCUSABLE | FLAG_NOT_TOUCH_MODAL | FLAG_LAYOUT_IN_SCREEN`, không dùng `FLAG_LAYOUT_NO_LIMITS`. Vị trí lưu dạng (cạnh, tỉ lệ dọc) để giữ đúng sau xoay màn hình.
+
+## ADR-020: IME — best-effort — accepted, needs device proof (M1)
+Không xin `flagRetrieveInteractiveWindows` nên không liệt kê được cửa sổ IME. Vùng an toàn trừ IME inset nếu `WindowMetrics` (API 30+) hoặc insets của chính view overlay báo về; nếu OEM không báo, bong bóng có thể đè lên bàn phím và người dùng kéo nó đi. Cần kiểm chứng trên OnePlus.
+
 ## Open device-validation questions
 - Accessibility service overlay remains usable across OxygenOS 16 lock/unlock, memory pressure and background cleanup? Track actual behavior; do not assume.
 - Do Zalo/Gmail expose text and writable input nodes reliably on this OS/build? Per-app observations only; fail gracefully otherwise.

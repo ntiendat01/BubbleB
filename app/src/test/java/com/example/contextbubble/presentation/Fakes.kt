@@ -1,6 +1,9 @@
 package com.example.contextbubble.presentation
 
+import com.example.contextbubble.domain.model.BubblePosition
 import com.example.contextbubble.domain.model.UserSettings
+import com.example.contextbubble.domain.repository.AccessibilityStatusSource
+import com.example.contextbubble.domain.repository.AppProfileRepository
 import com.example.contextbubble.domain.repository.SettingsRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,4 +20,17 @@ class FakeSettingsRepository(initial: UserSettings = UserSettings()) : SettingsR
         state.update { it.copy(consentVersion = null, consentAcceptedAtMs = null) }
 
     override suspend fun setBubbleEnabled(enabled: Boolean) = state.update { it.copy(bubbleEnabled = enabled) }
+
+    override suspend fun setBubblePosition(position: BubblePosition) =
+        state.update { it.copy(bubblePosition = position) }
+}
+
+class FakeAppProfileRepository : AppProfileRepository {
+    val excluded = MutableStateFlow<Set<String>>(emptySet())
+    override val excludedPackages: Flow<Set<String>> = excluded
+}
+
+class FakeAccessibilityStatus(initial: Boolean = false) : AccessibilityStatusSource {
+    val enabled = MutableStateFlow(initial)
+    override val isEnabledInSettings: Flow<Boolean> = enabled
 }

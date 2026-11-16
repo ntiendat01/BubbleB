@@ -13,13 +13,14 @@
 **Gate status (M0):** no unapproved permissions — PASS; Settings screen reachable — PASS (Robolectric/JVM); app launches on device/emulator — NOT_RUN / DEVICE_VERIFICATION_PENDING (emulator không chạy được trên máy build).
 
 ## M1 — Accessibility service + draggable bubble proof-of-concept (P0)
-- [ ] Implement service enable/disable status observer; self lifecycle cleanup.
-- [ ] Implement `OverlayController` with WindowManager and `TYPE_ACCESSIBILITY_OVERLAY`.
-- [ ] ComposeView + lifecycle tree owners; bubble dragging and edge snap, safe insets and positioning persistence.
-- [ ] Detect foreground package/window enough to hide bubble in excluded/lock contexts without reading text automatically.
-- [ ] Handle close/toggle, screen rotation, app switching, IME visibility, service revocation.
-- [ ] Test on sample app/emulator then OnePlus; document OEM behavior.
+- [ ] Implement service enable/disable status observer; self lifecycle cleanup. — IMPLEMENTED; unit PASS (`EnabledServicesParserTest`, `DashboardStateMapperTest`, `BubbleCoordinatorTest`); DEVICE_VERIFICATION_PENDING
+- [ ] Implement `OverlayController` with WindowManager and `TYPE_ACCESSIBILITY_OVERLAY`. — IMPLEMENTED; Robolectric PASS (`OverlayControllerTest`); DEVICE_VERIFICATION_PENDING
+- [ ] ComposeView + lifecycle tree owners; bubble dragging and edge snap, safe insets and positioning persistence. — IMPLEMENTED; unit/Robolectric PASS (`BubbleLayoutCalculatorTest`, `BubbleDragTrackerTest`, `OverlayControllerTest`, `DataStoreSettingsRepositoryTest`); DEVICE_VERIFICATION_PENDING (ADR-005 chưa được chứng minh trên máy thật)
+- [ ] Detect foreground package/window enough to hide bubble in excluded/lock contexts without reading text automatically. — IMPLEMENTED; unit PASS (`BubbleVisibilityPolicyTest`, `BubbleCoordinatorTest`); DEVICE_VERIFICATION_PENDING
+- [ ] Handle close/toggle, screen rotation, app switching, IME visibility, service revocation. — IMPLEMENTED (IME best-effort); logic unit PASS; DEVICE_VERIFICATION_PENDING
+- [ ] Test on sample app/emulator then OnePlus; document OEM behavior. — NOT_RUN (emulator không khởi động được trên máy build do lỗi KVM; chưa có thiết bị OnePlus). Script sẵn: `scripts/m1_device_check.sh`
 **Gate:** no crashes with 20 service toggles, 20 overlay attach/detach cycles; bubble positioned and removable; service disabled clears overlay. ADB/device gate can be PENDING if hardware unavailable.
+**Gate status (M1):** JVM: 20 lần bật/tắt service (coordinator) PASS, 20 chu kỳ attach/detach overlay (Robolectric) PASS, không nhân đôi cửa sổ PASS, service ngắt → ẩn bong bóng PASS. Device/ADB gate: PENDING (`DEVICE_VERIFICATION_PENDING`).
 
 ## M2 — Screen snapshot + privacy guard (P0)
 - [ ] Implement bounded Accessibility tree traversal and immutable structured DTOs.

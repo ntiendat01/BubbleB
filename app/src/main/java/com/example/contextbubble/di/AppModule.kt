@@ -11,8 +11,10 @@ import com.example.contextbubble.data.db.ContextBubbleDatabase
 import com.example.contextbubble.data.db.RoomAppProfileRepository
 import com.example.contextbubble.data.settings.DataStoreSettingsRepository
 import com.example.contextbubble.domain.Clock
+import com.example.contextbubble.domain.repository.AccessibilityStatusSource
 import com.example.contextbubble.domain.repository.AppProfileRepository
 import com.example.contextbubble.domain.repository.SettingsRepository
+import com.example.contextbubble.service.SettingsSecureAccessibilityStatus
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -60,4 +62,7 @@ abstract class AppBindsModule {
 
     @Binds
     abstract fun bindAppProfileRepository(impl: RoomAppProfileRepository): AppProfileRepository
+
+    @Binds
+    abstract fun bindAccessibilityStatusSource(impl: SettingsSecureAccessibilityStatus): AccessibilityStatusSource
 }

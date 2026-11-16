@@ -5,8 +5,12 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
+import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
+import com.example.contextbubble.domain.model.BubbleEdge
+import com.example.contextbubble.domain.model.BubblePosition
 import com.example.contextbubble.domain.model.UserSettings
 import com.example.contextbubble.domain.repository.SettingsRepository
 import java.io.IOException
@@ -47,12 +51,24 @@ class DataStoreSettingsRepository @Inject constructor(
         dataStore.edit { it[Keys.BUBBLE_ENABLED] = enabled }
     }
 
+    override suspend fun setBubblePosition(position: BubblePosition) {
+        dataStore.edit {
+            it[Keys.BUBBLE_EDGE] = position.edge.name
+            it[Keys.BUBBLE_Y_FRACTION] = position.yFraction.coerceIn(0f, 1f)
+        }
+    }
+
     private fun toSettings(prefs: Preferences): UserSettings {
         val defaults = UserSettings()
+        val edge = prefs[Keys.BUBBLE_EDGE]
+            ?.let { name -> BubbleEdge.entries.firstOrNull { it.name == name } }
+            ?: defaults.bubblePosition.edge
+        val fraction = prefs[Keys.BUBBLE_Y_FRACTION]?.coerceIn(0f, 1f) ?: defaults.bubblePosition.yFraction
         return UserSettings(
             consentVersion = prefs[Keys.CONSENT_VERSION],
             consentAcceptedAtMs = prefs[Keys.CONSENT_AT],
             bubbleEnabled = prefs[Keys.BUBBLE_ENABLED] ?: defaults.bubbleEnabled,
+            bubblePosition = BubblePosition(edge, fraction),
         )
     }
 
@@ -60,5 +76,7 @@ class DataStoreSettingsRepository @Inject constructor(
         val CONSENT_VERSION = intPreferencesKey("consent_version")
         val CONSENT_AT = longPreferencesKey("consent_accepted_at_ms")
         val BUBBLE_ENABLED = booleanPreferencesKey("bubble_enabled")
+        val BUBBLE_EDGE = stringPreferencesKey("bubble_edge")
+        val BUBBLE_Y_FRACTION = floatPreferencesKey("bubble_y_fraction")
     }
 }

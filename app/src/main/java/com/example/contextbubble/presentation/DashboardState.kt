@@ -1,10 +1,48 @@
 package com.example.contextbubble.presentation
 
-/** M0 dashboard state: consent only. Service status observation is added in M1. */
+/** Service status as shown on the dashboard (UI_UX.md Screen A). */
+enum class ServiceStatus {
+    /** Android Settings does not list the service as enabled. */
+    NO_PERMISSION,
+    /** Enabled in Settings, but the OS has not (yet) connected the service. */
+    ENABLED_NOT_CONNECTED,
+    CONNECTED,
+    /** Connected, but the user switched the bubble off. */
+    BUBBLE_OFF,
+}
+
 data class DashboardUiState(
+    val status: ServiceStatus = ServiceStatus.NO_PERMISSION,
     val consentAccepted: Boolean = false,
     val consentVersion: Int? = null,
-) {
-    /** Accessibility Settings are only offered after the disclosure was accepted. */
-    val canOpenAccessibilitySettings: Boolean get() = consentAccepted
+    val bubbleEnabled: Boolean = false,
+    val canToggleBubble: Boolean = false,
+    val canOpenAccessibilitySettings: Boolean = false,
+)
+
+/** Pure mapping so the "no fake success" rule is unit-testable. */
+object DashboardStateMapper {
+    fun map(
+        enabledInSettings: Boolean,
+        serviceConnected: Boolean,
+        consentAccepted: Boolean,
+        consentVersion: Int?,
+        bubbleEnabled: Boolean,
+    ): DashboardUiState {
+        val connected = enabledInSettings && serviceConnected
+        val status = when {
+            !enabledInSettings -> ServiceStatus.NO_PERMISSION
+            !serviceConnected -> ServiceStatus.ENABLED_NOT_CONNECTED
+            !bubbleEnabled -> ServiceStatus.BUBBLE_OFF
+            else -> ServiceStatus.CONNECTED
+        }
+        return DashboardUiState(
+            status = status,
+            consentAccepted = consentAccepted,
+            consentVersion = consentVersion.takeIf { consentAccepted },
+            bubbleEnabled = bubbleEnabled,
+            canToggleBubble = connected && consentAccepted,
+            canOpenAccessibilitySettings = consentAccepted,
+        )
+    }
 }

@@ -9,6 +9,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.contextbubble.ui.main.DashboardContent
+import com.example.contextbubble.ui.main.TAG_BUBBLE_SWITCH
 import com.example.contextbubble.ui.main.TAG_CONSENT
 import com.example.contextbubble.ui.main.TAG_OPEN_SETTINGS
 import com.example.contextbubble.ui.theme.ContextBubbleTheme
@@ -34,23 +35,28 @@ class DashboardContentTest {
                 onAcceptConsent = { consentClicks++ },
                 onRevokeConsent = {},
                 onOpenAccessibilitySettings = {},
+                onRecheck = {},
+                onBubbleToggle = {},
                 onOpenProviderSettings = { providerClicks++ },
             )
         }
     }
 
     @Test
-    fun beforeConsent_settingsDisabled_consentClickable() {
-        show(DashboardUiState(consentAccepted = false))
+    fun beforeConsent_settingsAndToggleDisabled() {
+        show(DashboardStateMapper.map(false, false, false, null, true))
         rule.onNodeWithTag(TAG_OPEN_SETTINGS).performScrollTo().assertIsNotEnabled()
+        rule.onNodeWithTag(TAG_BUBBLE_SWITCH).performScrollTo().assertIsNotEnabled()
         rule.onNodeWithTag(TAG_CONSENT).performScrollTo().performClick()
         assertEquals(1, consentClicks)
     }
 
     @Test
-    fun afterConsent_settingsEnabled() {
-        show(DashboardUiState(consentAccepted = true, consentVersion = 1))
+    fun consentedAndConnected_toggleEnabled() {
+        show(DashboardStateMapper.map(true, true, true, 1, true))
+        rule.onNodeWithText("Đã kết nối").assertExists()
         rule.onNodeWithTag(TAG_OPEN_SETTINGS).performScrollTo().assertIsEnabled()
+        rule.onNodeWithTag(TAG_BUBBLE_SWITCH).performScrollTo().assertIsEnabled()
     }
 
     @Test

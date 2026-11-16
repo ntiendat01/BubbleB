@@ -54,7 +54,15 @@ Test thiết bị (`connectedDebugAndroidTest`) cần emulator/thiết bị th�
 - Máy build Linux có `/dev/kvm` nhưng tạo vCPU KVM gây lỗi kernel (nested virtualization không hoạt động), nên **Android Emulator không khởi động được**. Vì vậy mọi test instrumented/thiết bị đều `NOT_RUN`.
 - Các test Robolectric chạy trên JVM; chúng **không** tương đương test trên thiết bị thật (không mô phỏng token `TYPE_ACCESSIBILITY_OVERLAY`, hành vi OEM, IME, khóa màn hình thật).
 
-## 6. Quyền trong APK đã merge
+## 6. Kiểm tra gate M1 trên emulator/thiết bị (khi có)
+```bash
+adb install -r app/build/outputs/apk/debug/app-debug.apk
+# Mở app, bấm "Tôi hiểu và đồng ý" một lần, rồi:
+scripts/m1_device_check.sh     # 20 lần bật/tắt service + 20 chu kỳ attach/detach + quét crash/ANR
+```
+Script chỉ là test harness (dùng `adb shell settings put secure ...`), không phải hướng dẫn cho người dùng vượt qua "restricted settings". Kiểm tra thủ công thêm: kéo bong bóng ra giữa rồi thả (phải hút về cạnh gần hơn), xoay màn hình, mở bàn phím, khóa/mở khóa, mở app bị loại trừ (ví dụ Google Authenticator), tắt Trợ năng trong Cài đặt (bong bóng phải biến mất). Ghi kết quả `SUPPORTED/PARTIAL/UNSUPPORTED` kèm ảnh chụp **dữ liệu giả**.
+
+## 7. Quyền trong APK đã merge
 Kiểm tra bằng `aapt2 dump permissions app/build/outputs/apk/debug/app-debug.apk`:
 - `android.permission.INTERNET` (khai báo trực tiếp, dùng từ M3).
 - `com.example.contextbubble.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`: quyền chữ ký nội bộ do `androidx.core` tự thêm để hỗ trợ đăng ký receiver không export trên API < 33; không phải quyền nhạy cảm và không hiển thị cho người dùng.

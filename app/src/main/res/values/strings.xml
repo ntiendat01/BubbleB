@@ -9,15 +9,24 @@
 
     <!-- Dashboard / onboarding -->
     <string name="dashboard_title">ContextBubble</string>
+    <string name="status_label">Trạng thái</string>
+    <string name="status_no_permission">Chưa cấp quyền</string>
+    <string name="status_enabled_not_connected">Đã bật trong Cài đặt, dịch vụ chưa kết nối</string>
+    <string name="status_connected">Đã kết nối</string>
+    <string name="status_bubble_off">Đã tắt bong bóng</string>
+    <string name="status_consent_required">Cần đọc và đồng ý thông báo quyền riêng tư</string>
     <string name="disclosure_title">Thông báo quyền riêng tư</string>
     <string name="disclosure_body">ContextBubble có thể đọc văn bản và thông tin giao diện đang hiển thị trên ứng dụng khác khi bạn chạm bong bóng. Bạn sẽ được xem trước và xác nhận nội dung trước khi gửi đến nhà cung cấp AI đã chọn. ContextBubble không tự gửi tin nhắn, không lưu nội dung màn hình và bạn có thể tắt quyền bất cứ lúc nào trong Cài đặt Android. Một số ứng dụng hoặc màn hình không cho phép đọc nội dung.</string>
     <string name="consent_button">Tôi hiểu và đồng ý</string>
     <string name="consent_given">Bạn đã đồng ý thông báo quyền riêng tư (phiên bản %1$d).</string>
     <string name="consent_revoke">Rút lại đồng ý</string>
     <string name="open_accessibility_settings">Mở cài đặt Trợ năng</string>
+    <string name="recheck_status">Kiểm tra lại</string>
     <string name="accessibility_help">Hãy bật ContextBubble trong Cài đặt Android › Trợ năng. Trên Android 13 trở lên, ứng dụng cài ngoài có thể bị hạn chế; hãy làm theo hướng dẫn chính thức của Android trên màn hình.</string>
+    <string name="bubble_toggle">Bật bong bóng</string>
+    <string name="bubble_toggle_disabled_hint">Chỉ bật được khi dịch vụ Trợ năng đã kết nối và bạn đã đồng ý.</string>
     <string name="open_provider_settings">Nhà cung cấp AI</string>
-    <string name="milestone_note">Bản khung M0: chưa có bong bóng, chưa đọc nội dung màn hình và chưa gửi gì đến AI.</string>
+    <string name="milestone_note">Bản thử nghiệm M1: bong bóng chưa đọc nội dung màn hình và chưa gửi gì đến AI.</string>
 
     <!-- Provider settings placeholder (M0) -->
     <string name="provider_title">Nhà cung cấp AI</string>
@@ -26,4 +35,7 @@
     <string name="not_configured">Chưa cấu hình nhà cung cấp AI</string>
     <string name="back">Quay lại</string>
 
+    <!-- Overlay -->
+    <string name="bubble_content_description">Mở ContextBubble</string>
+    <string name="bubble_tap_placeholder">ContextBubble M1: chưa đọc màn hình ở bản thử nghiệm này.</string>
 </resources>

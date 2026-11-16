@@ -19,3 +19,20 @@
 **Security/privacy checks:** chỉ quyền `INTERNET` (+ quyền chữ ký nội bộ của androidx.core); không cleartext; không backup; không có API key/secret trong repo; không ghi log nội dung.
 **Known limitations:** chưa chứng minh "app launches" trên thiết bị/emulator (chỉ Robolectric render Dashboard); service chỉ là khai báo.
 **Next milestone prerequisites:** M1 — status observer, overlay, bong bóng kéo thả.
+
+## M1 — Accessibility service + draggable bubble proof-of-concept
+
+**Modified files**
+- Mới: `domain/model/BubbleModels.kt`, `domain/policy/BubbleVisibilityPolicy.kt`, `domain/policy/EnabledServicesParser.kt`, `domain/layout/BubbleLayoutCalculator.kt`, `presentation/BubbleCoordinator.kt`, `overlay/OverlayController.kt`, `overlay/OverlayLifecycleOwner.kt`, `overlay/BubbleDragTracker.kt`, `overlay/SafeAreaProvider.kt`, `ui/overlay/BubbleContent.kt`, `service/SettingsSecureAccessibilityStatus.kt`, `service/ScreenLockMonitor.kt`, `res/drawable/ic_bubble.xml`, `scripts/m1_device_check.sh`.
+- Sửa: `BubbleAccessibilityService.kt` (adapter thật: kết nối, sự kiện cửa sổ, khóa màn hình, cleanup), `AppConstants.kt` (BubbleDefaults, ExclusionDefaults), `UserSettings.kt` + `Repositories.kt` + `DataStoreSettingsRepository.kt` (lưu vị trí bong bóng; `AccessibilityStatusSource`), `AppModule.kt`, `DashboardState.kt`/`DashboardViewModel.kt`/`DashboardScreen.kt` (trạng thái thật + công tắc bong bóng + "Kiểm tra lại"), `strings.xml`, `app/build.gradle.kts` (versionName).
+- Tests mới: `BubbleLayoutCalculatorTest`, `BubbleDragTrackerTest`, `BubbleVisibilityPolicyTest`, `EnabledServicesParserTest`, `BubbleCoordinatorTest`, `DashboardStateMapperTest`, `OverlayControllerTest` (Robolectric); cập nhật test dashboard/DataStore.
+- Docs: `docs/TASKS.md`, `docs/DECISIONS.md` (ADR-014…020), `docs/DEVELOPMENT.md`.
+
+**Build:** PASS — `./gradlew clean :app:assembleDebug :app:testDebugUnitTest :app:lint --no-build-cache` → BUILD SUCCESSFUL.
+**Unit tests:** PASS — 71 tests, 0 failures, 0 errors, 0 skipped (gồm 20 chu kỳ bật/tắt service ở coordinator, 20 chu kỳ attach/detach overlay trên Robolectric).
+**Lint:** PASS — 0 errors, 1 warning (`OldTargetApi`, có chủ đích).
+**Instrumented/device tests:** NOT_RUN — emulator không chạy được (KVM lỗi trên máy build), chưa có OnePlus Ace 5. `DEVICE_VERIFICATION_PENDING`.
+**Line-count audit:** PASS — file lớn nhất `OverlayController.kt` 200 dòng.
+**Security/privacy checks:** service không đọc text, không gọi mạng, chỉ đọc package của root; log chỉ ghi stage (không package/nội dung); không thêm quyền; không `SYSTEM_ALERT_WINDOW`; không `flagRetrieveInteractiveWindows`; overlay bị gỡ khi service ngắt.
+**Known limitations:** hành vi overlay/IME/khóa màn hình/OEM chưa kiểm chứng trên thiết bị; danh sách app nhạy cảm là best-effort; chạm bong bóng chỉ hiện Toast (capture ở M2); chưa có UI quản lý loại trừ (M5).
+**Next milestone prerequisites:** chạy `scripts/m1_device_check.sh` + checklist thủ công trên emulator/OnePlus và ghi kết quả; xác nhận ADR-005 (ComposeView trong overlay) ổn định; người dùng yêu cầu bắt đầu M2.
