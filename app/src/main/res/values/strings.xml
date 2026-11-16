@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ContextBubble</string>
+
+    <!-- Accessibility service (shown by Android Settings) -->
+    <string name="accessibility_service_label">ContextBubble</string>
+    <string name="accessibility_service_summary">Bong bóng tiện ích AI; chỉ đọc văn bản khi bạn chạm.</string>
+    <string name="accessibility_service_description">ContextBubble có thể đọc văn bản và thông tin giao diện đang hiển thị trên ứng dụng khác khi bạn chạm bong bóng. Bạn sẽ được xem trước và xác nhận nội dung trước khi gửi đến nhà cung cấp AI đã chọn. ContextBubble không tự gửi tin nhắn, không lưu nội dung màn hình và bạn có thể tắt quyền bất cứ lúc nào trong Cài đặt Android. Một số ứng dụng hoặc màn hình không cho phép đọc nội dung.</string>
+
+    <!-- Dashboard / onboarding -->
+    <string name="dashboard_title">ContextBubble</string>
+    <string name="disclosure_title">Thông báo quyền riêng tư</string>
+    <string name="disclosure_body">ContextBubble có thể đọc văn bản và thông tin giao diện đang hiển thị trên ứng dụng khác khi bạn chạm bong bóng. Bạn sẽ được xem trước và xác nhận nội dung trước khi gửi đến nhà cung cấp AI đã chọn. ContextBubble không tự gửi tin nhắn, không lưu nội dung màn hình và bạn có thể tắt quyền bất cứ lúc nào trong Cài đặt Android. Một số ứng dụng hoặc màn hình không cho phép đọc nội dung.</string>
+    <string name="consent_button">Tôi hiểu và đồng ý</string>
+    <string name="consent_given">Bạn đã đồng ý thông báo quyền riêng tư (phiên bản %1$d).</string>
+    <string name="consent_revoke">Rút lại đồng ý</string>
+    <string name="open_accessibility_settings">Mở cài đặt Trợ năng</string>
+    <string name="accessibility_help">Hãy bật ContextBubble trong Cài đặt Android › Trợ năng. Trên Android 13 trở lên, ứng dụng cài ngoài có thể bị hạn chế; hãy làm theo hướng dẫn chính thức của Android trên màn hình.</string>
+    <string name="open_provider_settings">Nhà cung cấp AI</string>
+    <string name="milestone_note">Bản khung M0: chưa có bong bóng, chưa đọc nội dung màn hình và chưa gửi gì đến AI.</string>
+
+    <!-- Provider settings placeholder (M0) -->
+    <string name="provider_title">Nhà cung cấp AI</string>
+    <string name="provider_placeholder">Cấu hình nhà cung cấp (HTTPS base URL, model, API key được mã hóa bằng Android Keystore) sẽ có ở milestone M3. Hiện chưa có trường nhập API key và ứng dụng không kết nối mạng.</string>
+    <string name="provider_privacy_note">Nội dung bạn xác nhận sẽ được gửi tới nhà cung cấp này.</string>
+    <string name="not_configured">Chưa cấu hình nhà cung cấp AI</string>
+    <string name="back">Quay lại</string>
+
+</resources>

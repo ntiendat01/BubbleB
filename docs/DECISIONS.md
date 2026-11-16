@@ -30,6 +30,15 @@ Users can map persona to observed apps. No blanket `QUERY_ALL_PACKAGES` request 
 ## ADR-010: 500-line cap — non-negotiable
 Human-authored implementation/config/test files max 500 physical lines; split modules earlier; no exceptions without user's explicit change.
 
+## ADR-011: Toolchain versions — accepted (M0)
+Dùng bộ phiên bản stable mới nhất resolve được trên máy build ngày 2026-11-16 (AGP 9.5.1, Gradle 9.9.1, Kotlin 2.4.21, Compose BOM 2026.09.00...). `compileSdk = 37` vì Compose UI 1.12/core-ktx 1.19 yêu cầu; `targetSdk = 36` (Android 16) cho khớp thiết bị OxygenOS 16 dự kiến và tránh bật hành vi runtime Android 17 chưa kiểm thử. Chi tiết ở `docs/DEVELOPMENT.md`.
+
+## ADR-012: Provider settings ở M0 chỉ là placeholder — accepted (M0)
+TASKS M0 chỉ yêu cầu "provider settings route". Kho bí mật Keystore thuộc M3, nên M0 **không** có ô nhập API key, URL hay model để tránh lưu bí mật trước khi có mã hóa. Không dùng `BuildConfig`/`local.properties` cho API key (sẽ bị nhúng vào APK).
+
+## ADR-013: Room `exportSchema = false` cho skeleton — accepted (M0)
+Schema v1 chỉ có bảng `app_profile` tối thiểu (packageName, isExcluded, updatedAtMs). Khi M5 thêm persona sẽ bật export schema vào `app/schemas/` và viết migration v1→v2 có test.
+
 ## Open device-validation questions
 - Accessibility service overlay remains usable across OxygenOS 16 lock/unlock, memory pressure and background cleanup? Track actual behavior; do not assume.
 - Do Zalo/Gmail expose text and writable input nodes reliably on this OS/build? Per-app observations only; fail gracefully otherwise.

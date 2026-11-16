@@ -22,6 +22,10 @@ ContextBubble là bong bóng tiện ích Android: người dùng **chủ động
 
 **Thiết bị đích:** OnePlus Ace 5 / OxygenOS 16 (cần xác nhận `Build.VERSION.SDK_INT` trên thiết bị). `minSdk=26` là quyết định sản phẩm, **không phải** API tối thiểu của accessibility overlay. `compileSdk`, `targetSdk` và phiên bản dependency phải là bản stable tương thích có thể xác minh trong môi trường build; agent phải ghi phiên bản thực tế vào README kỹ thuật khi code.
 
+## Build (README kỹ thuật)
+
+Phiên bản toolchain thực tế, cách thiết lập SDK và lệnh build/test nằm ở `docs/DEVELOPMENT.md`. Lịch sử từng milestone ở `CHANGELOG.md`.
+
 ## Giao task cho agent
 
 > Đọc `AGENTS.md`, `docs/PRODUCT_SPEC.md`, `docs/ARCHITECTURE.md`, `docs/SECURITY_PRIVACY.md` và `docs/TASKS.md`. Triển khai **M0 và M1 trước**, không tự mở rộng scope; mỗi milestone báo file thay đổi, lệnh build/test, kết quả, hạn chế và bằng chứng kiểm thử. Không file code nào >500 dòng. Không hardcode API key. Không thực hiện thao tác tự động gửi tin nhắn. Nếu chưa xác minh được trên máy OnePlus, đánh dấu `DEVICE_VERIFICATION_PENDING`, không tuyên bố đã hoạt động.

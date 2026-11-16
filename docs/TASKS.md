@@ -3,13 +3,14 @@
 **Instruction to agent:** Do not skip gates, do not check off tasks without running/observing acceptance. Record `PASS`, `FAIL`, `NOT_RUN` and `DEVICE_VERIFICATION_PENDING`. Max 500 physical lines per implementation/config/test file, per `AGENTS.md`.
 
 ## M0 — Project scaffold & environment (P0)
-- [ ] Create Android Kotlin + Compose project, theme, Hilt, navigation, Room/DataStore skeleton and test dependencies.
-- [ ] Set compileSdk/targetSdk to verified stable versions compatible with local AGP/Kotlin; minSdk 26.
-- [ ] Add correct `INTERNET` permission and Accessibility service declaration/config; no extra sensitive permissions.
-- [ ] Build placeholder Dashboard/Onboarding and provider settings route.
-- [ ] Document development setup, Gradle versions and device API info.
-- [ ] Run assembleDebug, unit tests; check line limits and no secrets.
+- [x] Create Android Kotlin + Compose project, theme, Hilt, navigation, Room/DataStore skeleton and test dependencies. — PASS (build)
+- [x] Set compileSdk/targetSdk to verified stable versions compatible with local AGP/Kotlin; minSdk 26. — PASS (compileSdk 37, targetSdk 36, xem `docs/DEVELOPMENT.md`)
+- [x] Add correct `INTERNET` permission and Accessibility service declaration/config; no extra sensitive permissions. — PASS (`ManifestAuditTest`, `aapt2 dump permissions`)
+- [x] Build placeholder Dashboard/Onboarding and provider settings route. — PASS (Robolectric `DashboardContentTest`)
+- [x] Document development setup, Gradle versions and device API info. — PASS (`docs/DEVELOPMENT.md`; device API: DEVICE_VERIFICATION_PENDING)
+- [x] Run assembleDebug, unit tests; check line limits and no secrets. — PASS (`scripts/audit.sh`)
 **Gate:** app launches; Settings screen reachable; no unapproved permissions. Do not claim service working yet.
+**Gate status (M0):** no unapproved permissions — PASS; Settings screen reachable — PASS (Robolectric/JVM); app launches on device/emulator — NOT_RUN / DEVICE_VERIFICATION_PENDING (emulator không chạy được trên máy build).
 
 ## M1 — Accessibility service + draggable bubble proof-of-concept (P0)
 - [ ] Implement service enable/disable status observer; self lifecycle cleanup.

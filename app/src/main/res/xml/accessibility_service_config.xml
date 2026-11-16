@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  canRetrieveWindowContent is declared per docs/ARCHITECTURE.md; in M1 the service only reads the
+  active root's package name on window-state events and never reads screen text automatically.
+  flagRetrieveInteractiveWindows is intentionally NOT requested (least privilege).
+-->
+<accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
+    android:accessibilityEventTypes="typeWindowStateChanged"
+    android:accessibilityFeedbackType="feedbackGeneric"
+    android:accessibilityFlags="flagDefault"
+    android:canRetrieveWindowContent="true"
+    android:description="@string/accessibility_service_description"
+    android:notificationTimeout="200"
+    android:settingsActivity="com.example.contextbubble.ui.main.MainActivity"
+    android:summary="@string/accessibility_service_summary" />
