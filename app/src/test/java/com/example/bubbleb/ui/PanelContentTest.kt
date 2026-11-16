@@ -41,6 +41,12 @@ class PanelContentTest {
         override fun onAction(action: AiAction) { actions += action }
         override fun onPreviewCancel() { cancels++ }
         override fun onReplyAction(operation: ReplyOperation, index: Int) = Unit
+        override fun onSend() = Unit
+        override fun onTranslationSelected(language: com.example.bubbleb.domain.llm.TranslationLanguage) = Unit
+        override fun onOutputReview() = Unit
+        override fun onOutputCopyRequest() = Unit
+        override fun onOutputCopyConfirm() = Unit
+        override fun onOutputCopyCancel() = Unit
         override fun onReplyConfirm() = Unit
         override fun onReplyCancel() = Unit
     }

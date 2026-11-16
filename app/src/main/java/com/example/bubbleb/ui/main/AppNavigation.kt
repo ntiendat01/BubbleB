@@ -9,6 +9,7 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import com.example.bubbleb.presentation.DashboardViewModel
+import com.example.bubbleb.presentation.ProviderViewModel
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -36,7 +37,8 @@ fun AppNavigation() {
                 )
             }
             entry<ProviderSettingsRoute> {
-                ProviderSettingsScreen(onBack = { backStack.removeLastOrNull() })
+                val providerViewModel: ProviderViewModel = hiltViewModel()
+                ProviderSettingsScreen(providerViewModel, onBack = { backStack.removeLastOrNull() })
             }
         },
     )

@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -28,6 +27,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.bubbleb.R
 import com.example.bubbleb.domain.model.AiAction
+import com.example.bubbleb.domain.llm.TranslationLanguage
 import com.example.bubbleb.presentation.BlockedReason
 import com.example.bubbleb.presentation.PanelState
 import com.example.bubbleb.presentation.ReplyOperation
@@ -41,6 +41,12 @@ interface PanelCallbacks {
     fun onReplyAction(operation: ReplyOperation, index: Int)
     fun onReplyConfirm()
     fun onReplyCancel()
+    fun onSend()
+    fun onTranslationSelected(language: TranslationLanguage)
+    fun onOutputReview()
+    fun onOutputCopyRequest()
+    fun onOutputCopyConfirm()
+    fun onOutputCopyCancel()
 }
 
 /** Non-focusable overlay panel (no text input). Scrolls within [maxHeight]. */
@@ -57,6 +63,7 @@ fun PanelContent(state: PanelState, appLabelFallback: String, maxHeight: Dp, cal
                 ?: (state as? PanelState.PreviewConsent)?.preview?.appLabel
                 ?: (state as? PanelState.AwaitingReply)?.appLabel
                 ?: (state as? PanelState.Replies)?.appLabel
+                ?: (state as? PanelState.Output)?.appLabel
                 ?: appLabelFallback
             PanelHeader(label, callbacks::onClose)
             Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -64,7 +71,8 @@ fun PanelContent(state: PanelState, appLabelFallback: String, maxHeight: Dp, cal
                     PanelState.Collapsed -> Unit
                     PanelState.Capturing -> Capturing()
                     is PanelState.Actions -> ActionList(state, callbacks)
-                    is PanelState.PreviewConsent -> Review(state, callbacks)
+                    is PanelState.PreviewConsent -> PayloadReviewContent(state, callbacks)
+                    is PanelState.Output -> AiOutputContent(state, callbacks)
                     is PanelState.AwaitingReply -> Text(stringResource(R.string.reply_waiting))
                     is PanelState.Replies -> ReplyResultContent(state.reply, callbacks)
                     is PanelState.Unavailable -> Unavailable(state.reason)
@@ -116,33 +124,6 @@ private fun ActionList(state: PanelState.Actions, callbacks: PanelCallbacks) {
 private fun ActionButton(textRes: Int, enabled: Boolean = true, onClick: () -> Unit) {
     OutlinedButton(onClick = onClick, enabled = enabled, modifier = Modifier.fillMaxWidth()) {
         Text(stringResource(textRes))
-    }
-}
-
-@Composable
-private fun Review(state: PanelState.PreviewConsent, callbacks: PanelCallbacks) {
-    val preview = state.preview
-    Text(stringResource(R.string.review_title), style = MaterialTheme.typography.titleSmall)
-    Text(stringResource(R.string.review_provider_none), style = MaterialTheme.typography.bodySmall)
-    Text(stringResource(R.string.review_count, preview.codePoints), style = MaterialTheme.typography.bodySmall)
-    if (preview.hasRedactions) Text(stringResource(R.string.review_redacted), color = MaterialTheme.colorScheme.primary)
-    if (preview.mostlyRedacted) Text(stringResource(R.string.review_mostly_redacted), color = MaterialTheme.colorScheme.error)
-    Surface(color = MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(8.dp)) {
-        Text(
-            preview.text.ifEmpty { stringResource(R.string.review_empty) },
-            style = MaterialTheme.typography.bodySmall,
-            modifier = Modifier.fillMaxWidth().padding(8.dp),
-        )
-    }
-    if (!state.providerConfigured) Text(stringResource(R.string.review_send_disabled), style = MaterialTheme.typography.bodySmall)
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        OutlinedButton(onClick = callbacks::onPreviewCancel, modifier = Modifier.weight(1f)) {
-            Text(stringResource(R.string.cancel))
-        }
-        // M2 has no network path: this button is always disabled until a provider exists (M3).
-        Button(onClick = {}, enabled = state.canSend, modifier = Modifier.weight(1f)) {
-            Text(stringResource(R.string.send_to_ai))
-        }
     }
 }
 

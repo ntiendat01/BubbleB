@@ -26,12 +26,10 @@
     <string name="bubble_toggle">Bật bong bóng</string>
     <string name="bubble_toggle_disabled_hint">Chỉ bật được khi dịch vụ Trợ năng đã kết nối và bạn đã đồng ý.</string>
     <string name="open_provider_settings">Nhà cung cấp AI</string>
-    <string name="milestone_note">Bản thử nghiệm M2: chạm bong bóng để đọc màn hình một lần và xem trước nội dung đã che. Chưa có kết nối AI; không có gì được gửi đi.</string>
+    <string name="milestone_note">Chạm bong bóng để đọc màn hình một lần. Chỉ gửi nội dung đã xem trước sau khi bạn xác nhận Gửi đến AI. Không tự gửi tin nhắn.</string>
 
     <!-- Provider settings placeholder (M0) -->
     <string name="provider_title">Nhà cung cấp AI</string>
-    <string name="provider_placeholder">Cấu hình nhà cung cấp (HTTPS base URL, model, API key được mã hóa bằng Android Keystore) sẽ có ở milestone M3. Hiện chưa có trường nhập API key và ứng dụng không kết nối mạng.</string>
-    <string name="provider_privacy_note">Nội dung bạn xác nhận sẽ được gửi tới nhà cung cấp này.</string>
     <string name="not_configured">Chưa cấu hình nhà cung cấp AI</string>
     <string name="back">Quay lại</string>
 
@@ -55,7 +53,7 @@
     <string name="review_redacted">Đã che dữ liệu nhạy cảm</string>
     <string name="review_mostly_redacted">Phần lớn nội dung đã bị che; không nên gửi.</string>
     <string name="review_empty">Không có nội dung để gửi.</string>
-    <string name="review_send_disabled">Chưa cấu hình nhà cung cấp AI. Bản M2 không gửi gì ra mạng.</string>
+    <string name="review_send_disabled">Chưa có cấu hình và key hợp lệ. Hãy mở Nhà cung cấp AI để cấu hình; nội dung chưa được gửi.</string>
     <string name="cancel">Hủy</string>
     <string name="send_to_ai">Gửi đến AI</string>
     <string name="error_no_permission">Chưa bật quyền Trợ năng</string>

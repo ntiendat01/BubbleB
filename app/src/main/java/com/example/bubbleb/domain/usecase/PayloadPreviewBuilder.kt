@@ -31,10 +31,10 @@ data class PayloadPreview(
 object PayloadPreviewBuilder {
     const val MIN_MEANINGFUL_CODE_POINTS = 20
 
-    fun build(context: ScreenContext, action: AiAction, captureTruncated: Boolean): PayloadPreview {
+    fun build(context: ScreenContext, action: AiAction, captureTruncated: Boolean, inputLimit: Int = CaptureLimits.MAX_PAYLOAD_CODE_POINTS): PayloadPreview {
         val raw = context.elements.filter { it.role != ElementRole.INPUT }.joinToString("\n") { it.text }
         val redacted = Redactor.redact(raw)
-        val cap = CaptureLimits.payloadCapFor(action)
+        val cap = minOf(CaptureLimits.payloadCapFor(action), inputLimit.coerceIn(0, CaptureLimits.MAX_PAYLOAD_CODE_POINTS))
         val text = TextLimits.truncate(redacted.text, cap)
         val cut = TextLimits.codePointLength(redacted.text) > cap
         val meaningful = TextLimits.codePointLength(Redactor.stripTokens(text).filterNot(Char::isWhitespace))

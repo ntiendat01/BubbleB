@@ -38,6 +38,7 @@ Require consent checkbox/tap after scroll/read; persist only notice version+time
 - Unknown content may still be sensitive; user must be able to cancel. In highly sensitive contexts disable AI action altogether.
 
 ## 6. Key management
+- M3 gắn normalized base URL làm AES-GCM AAD; đổi endpoint phải nhập lại key. Metadata/key ghi lệch khi lỗi phải fail closed, không dùng key nhầm host. SAVED key lỗi không fallback về `.env`; xóa cấu hình tắt debug fallback trước khi xóa key (ADR-033).
 - Generate/retrieve AES key in Android Keystore; encrypt API key using AES-GCM with random 12-byte IV per write; persist `{version, IV, ciphertext}` in app-private encrypted file or private preferences. Never log key or decrypted bytes.
 - If device lock/reset invalidates a key, clear corrupt ciphertext and prompt re-entry; never silently revert to plaintext.
 - No embedded developer key or shared key in APK; BYOK personal distribution. For public release introduce authenticated backend with rate limits instead.
@@ -59,6 +60,7 @@ Require consent checkbox/tap after scroll/read; persist only notice version+time
 - Copying to clipboard can expose text via Android system UI and other user tools; communicate this in help text.
 
 ## 9. Network and logging
+- M3 chỉ cho endpoint HTTPS công khai, từ chối credentials/query/fragment và DNS trả private/local IP; không redirect/replay tự động. Trước POST, provider config/revision phải khớp preview đã xác nhận. Connection test là nút riêng có disclosure dữ liệu giả và phí; không tự chạy khi mở/lưu settings.
 - HTTP request body never logged. Debug logs restricted to counts, operation duration, high-level error enums and stage transitions without app/window contents.
 - Reject unknown URL schemes and malformed host. Store provider URL and chosen model as metadata; user may configure third-party providers at their own risk.
 - Scrub errors before UI/logs: some provider error bodies may echo prompt or key. Show generic UI plus HTTP code/category only.

@@ -33,22 +33,23 @@
 **Gate status (M2):** JVM PASS — email/SĐT VN/thẻ Luhn/OTP/token/credential bị che trong preview; không che nhầm ngày/số tiền/giờ/số phòng mẫu; cây rỗng/protected/null root → `Không đọc được…`; app loại trừ/app của chính BubbleB/khóa màn hình → chặn **trước khi đọc text**; mật khẩu → chặn cả màn hình; giới hạn 500 node / độ sâu 20 / 300 ms / 500 ký tự mỗi node / 6000 ký tự tổng (Reply 3000) đều có test. Device gate: PENDING (`DEVICE_VERIFICATION_PENDING`). **Gate thiết bị M1 cũng vẫn PENDING** — M2 chưa được chạy trên emulator/OnePlus.
 
 ## M3 — LLM integration + 3 read-only actions (P0)
-- [ ] Implement HTTPS provider URL/credential handling with encrypted secret store, no plaintext key in DataStore.
-- [ ] Connection test with synthetic text only and configured model.
-- [ ] OkHttp Chat Completions request path + SSE streaming decoder; model compatibility handling.
-- [ ] Implement Summarize/Explain/Translate prompts; preview + explicit Send confirmation.
-- [ ] Cancellation, timeout and safe errors 401/403/429/5xx/partial event stream.
-- [ ] MockWebServer tests including fragmented `data:` payload and `[DONE]`.
+- [x] Implement HTTPS provider URL/credential handling with encrypted secret store, no plaintext key in DataStore. — PASS: `ProviderUrlTest`, `StoredProviderRepositoryTest`, `EncryptedSecretStoreTest`; AndroidKeyStore thật DEVICE_VERIFICATION_PENDING.
+- [x] Connection test with synthetic text only and configured model. — PASS: `ProviderViewModelTest`; không tự gọi khi mở/lưu settings. Provider thật NOT_RUN.
+- [x] OkHttp Chat Completions request path + SSE streaming decoder; model compatibility handling. — PASS: TLS MockWebServer HTTP/1.1/HTTP/2, UTF-8 phân mảnh, multiline data, `[DONE]`, JSON cùng response, optional usage/null fields; không tự replay.
+- [x] Implement Summarize/Explain/Translate prompts; preview + explicit Send confirmation. — PASS: `PanelAiFlowTest`, `AiPanelContentTest`; lựa chọn Việt/Anh, input cap, provider revision, bản xem trước khớp payload.
+- [x] Cancellation, timeout and safe errors 401/403/429/5xx/partial event stream. — PASS: lỗi HTTP không lộ body, hủy collector dừng OkHttp Call thật ở fixture TLS; đổi editor/window/app xóa phiên. Kiểm chứng vòng đời/OEM thật còn pending.
+- [x] MockWebServer tests including fragmented `data:` payload and `[DONE]`. — PASS, nằm trong tổng 238 JVM tests (0 failures/errors/skipped).
 **Gate:** no network call before Send, no leaking prompt/key via logs, loading cancel stops request, unit tests green.
+**Gate status M3 (2026-11-16):** build/debug unit/lint PASS; APK instrumented test biên dịch PASS, **không chạy** trên thiết bị. `generateReleaseBuildConfig` PASS và các field provider/key release rỗng. Audit PASS, file lớn nhất 291 dòng. Không gọi provider thật bằng key người dùng trong lượt này; tương thích model đã chọn và các hành vi Android/OEM vẫn DEVICE_VERIFICATION_PENDING. M3 đã triển khai và qua gate JVM, không đồng nghĩa MVP hoàn tất.
 
 ## M4 — Reply + safe insertion (P0)
-- [ ] Define Reply JSON schema (three labeled texts); robust validation and text-only fallback. — IMPLEMENTED (`ReplyJsonParser`, `ReplyPrompt`); tests NOT_RUN (thiếu Java Runtime).
-- [ ] Implement `InputSnapshot` and `TextInserter` reacquiring input right before action. — IMPLEMENTED (DTO định danh + đồng hồ monotonic; `GuardedTextInserter`, `AccessibilityTextInserter`); tests NOT_RUN; DEVICE_VERIFICATION_PENDING.
-- [ ] Default safe behavior: empty input + supported `ACTION_SET_TEXT`; nonempty drafts Copy only unless explicitly confirmed safe Replace. — IMPLEMENTED: chỉ ô trống, định danh ổn định và con trỏ xác định; không triển khai Replace. Copy có xác nhận thay clipboard; tests NOT_RUN.
-- [ ] Abort on app/window/focus/draft change, password/unknown target; no automated Send action. — IMPLEMENTED (metadata invalidation + kiểm tra lại ngay trước ghi); tests NOT_RUN; DEVICE_VERIFICATION_PENDING.
-- [ ] Test mock input editor and real Zalo/Gmail where practical. Never assert universal compatibility. — Đã viết tests fake editor, coordinator, parser, clipboard/password và Compose; NOT_RUN (thiếu JDK). Zalo/Gmail/OnePlus NOT_RUN.
+- [x] Define Reply JSON schema (three labeled texts); robust validation and text-only fallback. — PASS (`ReplyJsonParserTest`, `ReplySessionTest`) trong lượt M3.
+- [ ] Implement `InputSnapshot` and `TextInserter` reacquiring input right before action. — IMPLEMENTED; snapshot/policy/fake editor tests PASS trong lượt M3; Android adapter DEVICE_VERIFICATION_PENDING.
+- [ ] Default safe behavior: empty input + supported `ACTION_SET_TEXT`; nonempty drafts Copy only unless explicitly confirmed safe Replace. — IMPLEMENTED: chỉ ô trống có ID/cursor còn khớp, không Replace; policy/confirmation/clipboard Robolectric PASS. Device gate pending.
+- [ ] Abort on app/window/focus/draft change, password/unknown target; no automated Send action. — IMPLEMENTED; metadata invalidation/kiểm tra trước ghi/hậu điều kiện tests PASS; DEVICE_VERIFICATION_PENDING.
+- [ ] Test mock input editor and real Zalo/Gmail where practical. Never assert universal compatibility. — JVM fake editor/coordinator/parser/clipboard/password/Compose PASS; Zalo/Gmail/OnePlus NOT_RUN.
 **Gate:** existing drafts preserved, stale targets never modified, Copy always works.
-**Trạng thái M4 (2026-11-16):** triển khai phần độc lập theo yêu cầu người dùng trước M3 (ADR-030); **chưa hoàn tất milestone**. M3 chưa có client/request/provider UI nên giao diện người dùng vẫn dừng ở preview, nút gửi vẫn vô hiệu; chưa thể nhận gợi ý AI hay chèn từ luồng thực tế. Có điểm nối `onReplySendConfirmed` → `onReplyResponse` cho M3; không giả lập thành công hoặc thêm gọi mạng. Build/unit/lint NOT_RUN: `Unable to locate a Java Runtime`. Audit và XML well-formedness PASS. Android <33 hoặc ô nhập không cung cấp `uniqueId` ổn định: Copy only (ADR-031). Các checkbox giữ nguyên chưa đánh dấu hoàn thành.
+**Trạng thái M4 sau tích hợp M3 (2026-11-16):** M4 preview `86fd7a6` ban đầu thiếu M3/JDK (ADR-030). Nay luồng gửi/Reply đã được nối và toàn bộ tests M4 PASS trong tổng 238 JVM tests; build/lint PASS. **Chưa hoàn tất nghiệm thu thiết bị:** các task chèn thực tế còn pending. Android <33 hoặc thiếu stable uniqueId/cursor dùng Copy only (ADR-031). Không tuyên bố đã chèn thành công trên Zalo/Gmail/OnePlus.
 
 ## M5 — Persona, app profiles + Share fallback (P0)
 - [ ] Room tables for AppProfile and Persona; defaults suggestions per app but let user customize.

@@ -69,7 +69,7 @@
 All P0 functional+security tests PASS, or a documented platform-unavailable behavior with fail-safe fallback and explicit acceptance. **Any data leak / silent overwrite / unauthorized remote request is release blocking.** Hardware-dependent cases are not PASS until physically run.
 
 ## M4 — trạng thái và kiểm thử bổ sung (2026-11-16)
-**Tất cả tests Kotlin mới: NOT_RUN** (thiếu Java Runtime trên máy hiện tại). Không coi test source hoặc kiểm tra XML/audit là bằng chứng biên dịch hay hành vi trên Android. Chưa có luồng M3 trong app để chạy nghiệm thu Reply toàn trình. Checklist thiết bị/reproduction nằm ở `DEVELOPMENT.md` §9.
+**Cập nhật sau M3:** tests M4 đã chạy PASS trong tổng 238 JVM tests, build/lint PASS. Luồng M3 đã nối; thiết bị thật/provider thật vẫn chưa được chạy. Không coi JVM/Robolectric là bằng chứng AndroidKeyStore/overlay/chèn hoạt động trên OnePlus. Checklist thiết bị/reproduction nằm ở `DEVELOPMENT.md` §9–10.
 
 | Test source | Các trường hợp phải chứng minh khi chạy |
 |---|---|
@@ -83,3 +83,13 @@ All P0 functional+security tests PASS, or a documented platform-unavailable beha
 | `ReplyResultContentTest` (Robolectric Compose) | Ba lựa chọn, xác nhận Copy/chèn/Hủy; malformed JSON chỉ hiển thị text và Copy. |
 
 Chạy đầy đủ `./gradlew :app:assembleDebug :app:testDebugUnitTest :app:lint` khi có toolchain. Kiểm thử thật fixture/Zalo/Gmail/OnePlus, hành vi clipboard trong overlay không focus và tính ổn định uniqueId vẫn **DEVICE_VERIFICATION_PENDING**; nếu không hỗ trợ thì ghi rõ Copy/manual paste hoặc UNSUPPORTED, không tự mở rộng quyền.
+
+## M3 — kết quả kiểm thử (2026-11-16)
+- PASS: toàn bộ 238 JVM tests, không fail/error/skip; gồm các test cũ và M4.
+- PASS: `ProviderUrlTest` (HTTPS/path/credentials/query/private IPv4/IPv6/mixed DNS, client không redirect/retry/cache/logger), `StoredProviderRepositoryTest` (saved ưu tiên debug, origin binding, rotation/revision, không key plaintext trong DataStore, xóa tắt fallback).
+- PASS: `EncryptedSecretStoreTest` dùng AES-GCM JCE trên Robolectric API 26/35 cho ciphertext/fresh IV/AAD/invalidation/re-entry/transient error. Đây chưa phải kiểm chứng AndroidKeyStore thật.
+- PASS: `OkHttpLlmGatewayTest` dùng TLS MockWebServer, model/path/auth đúng, HTTP/1.1 chunks cỡ 1 byte, UTF-8 emoji, multiline SSE, HTTP/2 SSE, optional usage, JSON fallback cùng response, 401/403/429/5xx/302/timeout/malformed/partial/oversize, không replay; cancel collector làm running calls về 0.
+- PASS: `SseDecoderTest`, `ChatPayloadTest` (screen text tách user-data, không key trong body, optional null fields, estimate), `PanelAiFlowTest` (zero calls trước Send, revision đổi, hủy khi dismiss/editor/window/app, payload/language/cap, non-stream Reply chỉ hiện sau complete, retry phải quay review).
+- PASS: `ProviderViewModelTest` (zero auto calls khi mở/lưu; synthetic test đúng model/cap, hủy/rời màn hình xóa key draft, lỗi enum), `AiPanelContentTest` (model/provider/target language, tap Send, Copy confirm).
+- PASS: `assembleDebugAndroidTest`; **NOT_RUN** `KeystoreSecretStoreTest` instrumented (2 cases, alias/file test riêng), chưa có thiết bị/emulator chạy trong lượt này.
+- NOT_RUN: request xác thực đến provider/model thật, network inspector trên điện thoại, actual AndroidKeyStore/clipboard/SET_TEXT/OxygenOS. Không có kết quả benchmark latency/24h thật để báo PASS.

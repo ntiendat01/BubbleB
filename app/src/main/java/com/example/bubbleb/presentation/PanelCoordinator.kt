@@ -1,6 +1,9 @@
 package com.example.bubbleb.presentation
 
 import com.example.bubbleb.di.OwnPackageName
+import com.example.bubbleb.di.ElapsedTime
+import com.example.bubbleb.domain.Clock
+import com.example.bubbleb.domain.llm.*
 import com.example.bubbleb.domain.capture.CapturePreflight
 import com.example.bubbleb.domain.model.AiAction
 import com.example.bubbleb.domain.model.BubbleVisibility
@@ -17,6 +20,9 @@ import com.example.bubbleb.domain.usecase.PayloadPreviewBuilder
 import com.example.bubbleb.domain.usecase.ScreenHeuristics
 import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import javax.inject.Singleton
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -25,7 +31,7 @@ import kotlinx.coroutines.flow.first
 
 /**
  * Application-scoped panel controller. Capture happens only from [onBubbleTapped] (explicit user
- * tap); network transport still awaits M3. The raw [ScreenContext] lives only in memory and is
+ * tap); the request runner is invoked only by explicit Send. Raw [ScreenContext] lives in RAM and is
  * purged on every dismiss, app switch, lock, rotation and service disconnect.
  */
 @Singleton
@@ -34,6 +40,9 @@ class PanelCoordinator @Inject constructor(
     private val appProfileRepository: AppProfileRepository,
     @param:OwnPackageName private val ownPackage: String,
     private val replyParser: ReplyParser,
+    private val providers: ProviderRepository = UnconfiguredProvider,
+    private val requests: PanelRequestRunner = PanelRequestRunner(UnconfiguredProvider, OfflineGateway, UsageCounter()),
+    @param:ElapsedTime private val elapsedClock: Clock = Clock { 0L },
 ) {
     private val mutableState = MutableStateFlow<PanelState>(PanelState.Collapsed)
     val state: StateFlow<PanelState> = mutableState.asStateFlow()
@@ -42,6 +51,7 @@ class PanelCoordinator @Inject constructor(
     private var captureTruncated = false
     private var requestId = 0L
     private var replySession: ReplySession? = null
+    private var networkJob: Job? = null
 
     /** Package the current snapshot belongs to, used to dismiss on app switch. */
     val capturedPackage: String? get() = context?.packageName
@@ -55,6 +65,8 @@ class PanelCoordinator @Inject constructor(
         }
         val id = ++requestId
         mutableState.value = PanelState.Capturing
+        providers.refresh() // Local metadata/key status only; never a connection test or upload.
+        if (id != requestId) return
         val excluded = appProfileRepository.excludedPackages.first()
         val locked = bubbleCoordinator.isScreenLocked.value
         val result = try {
@@ -87,10 +99,69 @@ class PanelCoordinator @Inject constructor(
         val current = mutableState.value as? PanelState.Actions ?: return
         val ctx = context ?: return dismiss()
         if (action == AiAction.REPLY && !current.replyEligible) return
+        val provider = providers.status.value
         mutableState.value = PanelState.PreviewConsent(
-            preview = PayloadPreviewBuilder.build(ctx, action, captureTruncated),
-            providerConfigured = false,
+            preview = PayloadPreviewBuilder.build(ctx, action, captureTruncated, provider.config?.inputLimit ?: LlmLimits.MAX_INPUT),
+            providerConfigured = provider.ready,
+            provider = provider,
         )
+    }
+
+    fun onTranslationSelected(language: TranslationLanguage) {
+        val review = mutableState.value as? PanelState.PreviewConsent ?: return
+        if (review.action == AiAction.TRANSLATE) mutableState.value = review.copy(language = language)
+    }
+
+    /** The sole production entry to remote generation, wired to the visible Send confirmation. */
+    fun onSend(scope: CoroutineScope) {
+        val review = mutableState.value as? PanelState.PreviewConsent ?: return
+        val ctx = context ?: return
+        if (!review.canSend || networkJob?.isActive == true) return
+        networkJob = scope.launch {
+            val id = if (review.action == AiAction.REPLY) {
+                onReplySendConfirmed(review.providerConfigured)?.id ?: return@launch
+            } else {
+                if (!isContextAllowed(ctx.packageName) || mutableState.value !== review) return@launch
+                (++requestId).also { mutableState.value = PanelState.Output(ctx.appLabel, review.action) }
+            }
+            val reducer = PanelResponseReducer(ctx.appLabel, review.action,
+                publish = { mutableState.value = it },
+                completedReply = { onReplyResponse(id, it, elapsedClock.nowMs()) })
+            requests.run(review, { id == requestId && context === ctx && isContextAllowed(ctx.packageName) }) { event ->
+                if (id == requestId && context === ctx) reducer.accept(event)
+            }
+        }
+    }
+
+    fun onOutputReview() {
+        val output = mutableState.value as? PanelState.Output ?: return
+        val ctx = context ?: return dismiss()
+        networkJob?.cancel()
+        requestId++
+        mutableState.value = PanelState.Actions(ctx.appLabel, ScreenHeuristics.visibleCodePoints(ctx),
+            ScreenHeuristics.isReplyEligible(ctx), ScreenHeuristics.classify(ctx), captureTruncated)
+        onActionSelected(output.action) // Retry always returns to review, never directly to HTTP.
+    }
+
+    fun onOutputCopyRequest() {
+        val output = mutableState.value as? PanelState.Output ?: return
+        if (!output.loading && output.text.isNotBlank()) mutableState.value = output.copy(copyPending = true, copyFeedback = null)
+    }
+
+    fun onOutputCopyCancel() {
+        val output = mutableState.value as? PanelState.Output ?: return
+        mutableState.value = output.copy(copyPending = false)
+    }
+
+    suspend fun onOutputCopyConfirm(clipboard: ReplyClipboard?) {
+        val output = mutableState.value as? PanelState.Output ?: return
+        if (!output.copyPending || output.loading || output.text.isBlank()) return
+        val allowed = isContextAllowed(context?.packageName)
+        if (mutableState.value !== output) return
+        if (!allowed) return dismiss()
+        mutableState.value = output.copy(copyPending = false)
+        val copied = try { clipboard?.copy(output.text) == true } catch (_: RuntimeException) { false }
+        mutableState.value = output.copy(copyPending = false, copyFeedback = if (copied) ReplyFeedback.COPIED else ReplyFeedback.COPY_FAILED)
     }
 
     /** Back from preview to the action list without re-capturing. */
@@ -107,8 +178,8 @@ class PanelCoordinator @Inject constructor(
     }
 
     /**
-     * M3 must call this from explicit Send, with provider readiness resolved locally. No network
-     * client exists yet; M2's disabled Send button never calls this integration entry point.
+     * Creates a reply session only after the Send gesture. Transport also checks the reviewed
+     * provider revision immediately before starting HTTP; this method itself performs no upload.
      */
     suspend fun onReplySendConfirmed(providerReady: Boolean): ReplyRequest? {
         val preview = mutableState.value as? PanelState.PreviewConsent ?: return null
@@ -165,6 +236,8 @@ class PanelCoordinator @Inject constructor(
 
     /** Close/Cancel/Back and every lifecycle trigger: purge snapshot and collapse. */
     fun dismiss() {
+        networkJob?.cancel()
+        networkJob = null
         requestId++
         context = null
         captureTruncated = false
@@ -214,14 +287,5 @@ class PanelCoordinator @Inject constructor(
     }
 
     /** Content-free description of the current state for `BB/Panel` stage logs. */
-    fun stageOf(state: PanelState): String = when (state) {
-        PanelState.Collapsed -> "collapsed"
-        PanelState.Capturing -> "capturing"
-        is PanelState.Actions -> "actions:reply=${state.replyEligible},type=${state.screenType}"
-        is PanelState.PreviewConsent -> "preview:${state.action},redactions=${state.preview.redactionCounts.values.sum()}"
-        is PanelState.AwaitingReply -> "awaiting_reply"
-        is PanelState.Replies -> "reply_result"
-        is PanelState.Unavailable -> "unavailable:${state.reason},cause=${state.cause}"
-        is PanelState.Blocked -> "blocked:${state.reason},cause=${state.cause}"
-    }
+    fun stageOf(state: PanelState): String = PanelStage.describe(state)
 }

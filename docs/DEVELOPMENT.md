@@ -17,6 +17,7 @@
 | DataStore Preferences | 1.3.0 |
 | Coroutines | 1.11.0 |
 | Robolectric (unit test JVM) | 4.18 |
+| OkHttp / MockWebServer | 5.5.1 (M3, phiên bản stable đã đối chiếu changelog chính thức) |
 | `compileSdk` | 37 (platform `android-37.0`) — bắt buộc vì Compose UI 1.12 / core-ktx 1.19 yêu cầu compileSdk ≥ 37 |
 | `targetSdk` | 36 (Android 16) — giữ ở 36 cho khớp OxygenOS 16 dự kiến, tránh hành vi runtime của Android 17 chưa kiểm thử; lint cảnh báo `OldTargetApi` là có chủ đích |
 | `minSdk` | 26 (quyết định hỗ trợ sản phẩm, xem ADR-008) |
@@ -90,7 +91,9 @@ Kiểm tra bằng `aapt2 dump permissions app/build/outputs/apk/debug/app-debug.
 - `com.example.bubbleb.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`: quyền chữ ký nội bộ do `androidx.core` tự thêm để hỗ trợ đăng ký receiver không export trên API < 33; không phải quyền nhạy cảm và không hiển thị cho người dùng.
 - Không có `SYSTEM_ALERT_WINDOW`, `QUERY_ALL_PACKAGES`, quyền micro/danh bạ/bộ nhớ.
 
-## 9. M4 — triển khai độc lập, chưa nối M3 / chưa kiểm thử trên máy
+## 9. M4 preview — lịch sử tại commit 86fd7a6
+
+Mục này ghi lại trạng thái trước M3. Bản hiện tại đã nối M3 và chạy tests; xem mục 10 cho kết quả/cách dùng mới. Checklist thiết bị bên dưới vẫn áp dụng.
 
 M4 hiện có parser/schema Reply, state kết quả và xác nhận Copy/chèn; M3 chưa có nên **không có đường người dùng nhận kết quả AI trong APK hiện tại**. Không thử bấm nút Send đang vô hiệu để nghiệm thu M4. Chưa có request xác thực đến provider, chưa chứng minh tương thích DeepSeek/Zalo/Gmail/OnePlus.
 
@@ -114,3 +117,27 @@ Checklist thiết bị **sau khi nối M3**, dùng dữ liệu giả và ghi mod
 - Có nháp (kể cả khoảng trắng), không có ID/cursor, password, đổi focus/window/app, gõ rồi xóa lại, hết 120 giây, khóa/tắt service/rút consent/thêm exclusion: không ghi vào mục tiêu cũ. Khi editor phát metadata thay đổi, panel có thể đóng ngay.
 - Action trả false, OEM ném lỗi hoặc hậu điều kiện không chứng minh được: không tự thử lại/paste/Copy, hiện trạng thái chưa xác minh nếu panel còn mở; người dùng tự kiểm tra editor.
 - Đóng panel hoặc ngắt service khi đang chờ: xóa phiên, bỏ response muộn; kiểm tra HTTP cancellation thật ở M3. Chạy trên fixture rồi Zalo/Gmail nơi hỗ trợ; ghi SUPPORTED/PARTIAL/UNSUPPORTED, không suy từ Robolectric ra máy thật.
+
+## 10. M3 + M4 — bản 0.2.3-m3 (versionCode 5)
+
+**Môi trường M3:** macOS 15.7 x86_64, Temurin JDK 17.0.21+9, Gradle 9.9.1, compileSdk 37 (`android-37.0` r2), targetSdk 36, build-tools 36.0.0. JDK/SDK/Gradle cache cài riêng dưới `/private/tmp`, không đổi JDK hệ thống hay commit binary. Đã xác minh SHA-256 archive JDK từ Adoptium và checksum SDK tools theo metadata Google. Các ghi chú Linux/KVM phía trên là lịch sử; lượt này không chạy emulator/thiết bị.
+
+Tái chạy trên môi trường vừa thiết lập (đường dẫn tạm có thể bị OS xóa; khi đó thiết lập lại theo mục 2):
+```bash
+export JAVA_HOME=/private/tmp/bubbleb-toolchain/jdk-17.0.21+9/Contents/Home
+export ANDROID_HOME=/private/tmp/bubbleb-sdk
+export GRADLE_USER_HOME=/private/tmp/bubbleb-gradle
+./gradlew :app:assembleDebug :app:testDebugUnitTest :app:lint :app:assembleDebugAndroidTest :app:generateReleaseBuildConfig
+bash scripts/audit.sh
+```
+**Kết quả thực tế:** BUILD SUCCESSFUL; 238 JVM tests, 0 failures/errors/skipped; lint 0 errors, 1 warning OldTargetApi có chủ đích. APK app và APK instrumented test đều biên dịch; **chưa chạy instrumented tests**. Release BuildConfig có 9 trường provider/model/key đều rỗng; chưa build/phát hành APK release. `aapt2 dump permissions` chỉ INTERNET và quyền chữ ký nội bộ androidx.core; label BubbleB, applicationId `com.example.bubbleb`, versionCode 5.
+
+**Cách kiểm tra trên điện thoại (chưa chạy trong lượt này):**
+1. Cài APK debug từ `app/build/outputs/apk/debug/app-debug.apk`. Nếu APK chứa `.env` key thì không chia sẻ APK đó. Bản build từ môi trường mới có thể khác debug signing key; nếu Android báo chữ ký không khớp, dùng keystore đã ký bản cũ để cập nhật giữ dữ liệu, không tự gỡ app.
+2. Mở Nhà cung cấp AI: URL `https://api.inference.wandb.ai/v1`, model `deepseek-ai/DeepSeek-V4.1-Flash-1017`; nhập/lưu key hoặc dùng debug defaults. Cấu hình lưu trong app ưu tiên `.env`; đổi endpoint yêu cầu nhập lại key. Xóa cấu hình không tự kích hoạt lại debug defaults.
+3. Chạm Kiểm tra kết nối bằng văn bản giả sau khi đọc thông báo có thể tính phí. Lượt agent chỉ dùng TLS MockWebServer/synthetic keys, **không gọi provider thật bằng key người dùng**.
+4. Đọc disclosure và bật Accessibility qua Android Settings. Mở app có dữ liệu giả → bong bóng → Tóm tắt/Giải thích/Dịch (Việt/Anh) hoặc Reply → review provider/model/payload/limits → Gửi đến AI. Chỉ lúc này upload. Copy/chèn áp dụng checklist mục 9; không tự Send tin nhắn.
+5. Đang streaming thì đóng panel/đổi app/khóa/rút quyền; kiểm tra không nhận kết quả cũ và request bị hủy. Đổi config sau preview phải yêu cầu review lại. Nếu provider từ chối streaming, tắt streaming rồi xác nhận lần gửi mới; không tự retry.
+6. Kiểm tra Keystore thật bằng `./gradlew :app:connectedDebugAndroidTest` khi có thiết bị. Test dùng file/alias UUID riêng và dữ liệu giả; không xóa key provider thật. Round-trip, key bị mất, clipboard trên overlay, stable uniqueId và hành vi OnePlus vẫn DEVICE_VERIFICATION_PENDING.
+
+Giới hạn tooling đã quan sát: `./gradlew :app:tasks --all` gặp lỗi AGP Compose Preview cho variant release không có unit tests; các lệnh build/test/lint cụ thể ở trên PASS. Không thay đổi release unit-test/preview configuration ngoài scope M3.

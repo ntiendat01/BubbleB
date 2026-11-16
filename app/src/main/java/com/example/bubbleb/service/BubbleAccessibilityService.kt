@@ -11,6 +11,7 @@ import android.widget.Toast
 import com.example.bubbleb.R
 import com.example.bubbleb.domain.Clock
 import com.example.bubbleb.domain.model.AiAction
+import com.example.bubbleb.domain.llm.TranslationLanguage
 import com.example.bubbleb.domain.model.BubbleVisibility
 import com.example.bubbleb.domain.repository.ScreenCaptureSource
 import com.example.bubbleb.overlay.OverlayController
@@ -129,6 +130,7 @@ class BubbleAccessibilityService : AccessibilityService() {
             AccessibilityEvent.TYPE_VIEW_TEXT_SELECTION_CHANGED -> {
                 if (panelCoordinator.state.value != PanelState.Collapsed) panelCoordinator.onEditorChanged(event.packageName?.toString())
             }
+            else -> Unit // All other event types are intentionally ignored without reading content.
         }
     }
 
@@ -185,6 +187,12 @@ class BubbleAccessibilityService : AccessibilityService() {
             scope?.launch { panelCoordinator.onReplyActionConfirm(textInserter, replyClipboard) }
         }
         override fun onReplyCancel() = panelCoordinator.onReplyActionCancel()
+        override fun onSend() { scope?.let(panelCoordinator::onSend) }
+        override fun onTranslationSelected(language: TranslationLanguage) = panelCoordinator.onTranslationSelected(language)
+        override fun onOutputReview() = panelCoordinator.onOutputReview()
+        override fun onOutputCopyRequest() = panelCoordinator.onOutputCopyRequest()
+        override fun onOutputCopyConfirm() { scope?.launch { panelCoordinator.onOutputCopyConfirm(replyClipboard) } }
+        override fun onOutputCopyCancel() = panelCoordinator.onOutputCopyCancel()
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {

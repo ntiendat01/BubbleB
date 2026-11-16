@@ -162,9 +162,16 @@ State data: action, provider label, context preview sanitized, `requestId`, inpu
 - CI: format/lint, unit tests, build Debug. Nightly instrumented UI tests only if device available; manually run OnePlus matrix.
 - Each code/config/test file <=500 physical lines; tracked in AGENTS.md.
 
-## 10. Ranh giới triển khai M4 (chờ tích hợp M3)
+## 10. Ranh giới triển khai M4 (đã nối M3, chờ kiểm chứng thiết bị)
 - `data/reply/ReplyJsonParser` triển khai `ReplyParser` của domain: đúng ba nhãn, giới hạn text/độ sâu JSON, làm sạch text hiển thị; output sai chỉ được Copy.
-- `presentation/ReplySession` giữ kết quả/xác nhận tạm trong RAM; `PanelCoordinator` quản lý request ID và xóa phiên khi context mất hiệu lực. Không đưa response mạng giả vào UI sản phẩm.
+- `presentation/ReplySession` giữ kết quả/xác nhận tạm trong RAM; `PanelCoordinator` quản lý request ID và xóa phiên khi context mất hiệu lực. `onSend` gọi runner thật sau review; Reply chỉ xuất hiện sau complete. Không đưa response mạng giả vào UI sản phẩm.
 - `domain/reply/InsertionPolicy` và `GuardedTextInserter` kiểm tra DTO, điều phối một lần ghi đồng bộ; `service/AccessibilityTextInserter` cung cấp phiên node Android ngắn. API <33 hoặc thiếu stable node ID dùng Copy có xác nhận.
 - Thao tác ghi editor duy nhất là `ACTION_SET_TEXT` cho mục tiêu trống đã xác thực. Clipboard dùng port `ReplyClipboard` riêng sau xác nhận. Không tự retry/paste/replace/Send.
 - Event metadata editor chỉ vô hiệu snapshot do người dùng chủ động tạo; không tự đọc text. Xem ADR-030…032 và `DEVELOPMENT.md` §9 cho phần tích hợp/kiểm thử thiết bị còn thiếu.
+
+## 11. Triển khai M3
+- `ProviderRepository` là boundary domain; `StoredProviderRepository` giữ metadata DataStore và gắn key với normalized endpoint qua AAD. `SecretStore` ghi ciphertext riêng, `KeystoreSecretCipher` dùng AndroidKeyStore; status chỉ chứa config/revision/source/key issue, không chứa secret.
+- `ProviderViewModel` giữ form/key draft trong RAM và chỉ gửi connection test giả khi người dùng chạm nút đã disclosure. Không test hay fetch model ngầm khi mở/lưu settings. Dùng cùng model/token cap đã cấu hình; không ép cap thấp hơn khiến model reasoning báo lỗi giả.
+- `PanelRequestRunner` resolve config/key, so revision của preview và kiểm tra policy trước HTTP. `PanelResponseReducer` giữ accumulation tạm; `PanelStage` là allowlist log không text. `UsageCounter` chỉ aggregate trong RAM.
+- `OkHttpLlmGateway` là boundary HTTP duy nhất. `ProviderUrl`/`PublicProviderDns` hạn chế endpoint; `ChatPayload` dựng message/parse envelope; `SseDecoder`/`ChatResponseReader` xử lý logical events có cap. Response lỗi bị bỏ, chỉ chuyển error enum.
+- Job thuộc scope service; dismiss/đổi context hủy collector → `Call.cancel()`, body được đóng trong callback reader. Xem ADR-033…036. Android Share/persona vẫn M5; toàn luồng trên OnePlus và provider thật chưa được xác minh.

@@ -106,3 +106,33 @@
 **Audit:** PASS — `bash scripts/audit.sh`, exit 0; 110 file code/config/script được kiểm tra, lớn nhất `BubbleAccessibilityService.kt` 237 dòng. Quy tắc audit không phát hiện secret hardcode/endpoint cleartext; XML mới/sửa parse được; `git diff --check` PASS.
 **Hạn chế/rủi ro:** UI hiện tại vẫn dừng ở preview, nút Send vô hiệu vì chưa có M3. M4 mới có điểm nối request/result, không có HTTP cancellation thật. Android <33 hoặc app thiếu stable uniqueId/cursor → Copy only; clipboard trong overlay/OEM và SET_TEXT chưa được chứng minh. Android không hỗ trợ compare-and-set nguyên tử với editor từ app khác; ưu tiên Copy khi không chắc chắn. Metadata editor có thể làm panel đóng sớm (fail closed).
 **Bước tiếp:** nối M3/provider/model đã chọn, chạy build/unit/lint, kiểm thử fixture và checklist thiết bị DEVELOPMENT §9 rồi mới xem xét nghiệm thu M4.
+
+## M3 — LLM, cấu hình/key và nối M4 (0.2.3-m3, 2026-11-16)
+
+**Implemented:** cấu hình provider tự nhập với mặc định `https://api.inference.wandb.ai/v1` / `deepseek-ai/DeepSeek-V4.1-Flash-1017`; key Keystore/AES-GCM, connection test bằng văn bản giả, Chat Completions HTTPS, SSE/non-stream, Tóm tắt/Giải thích/Dịch (Việt/Anh), Reply non-stream nối parser và Copy/chèn của M4. Không tự Send tin nhắn. Persona/Share vẫn chưa triển khai (M5).
+
+**Files/kiến trúc:**
+- Mới `domain/llm/{ProviderModels,LlmModels,ActionPrompt,SecretStore}.kt`; hợp đồng metadata/status/credentials/gateway, limits và aggregate usage trong RAM.
+- Mới `data/secrets/{SecretEnvelope,KeystoreSecretCipher,EncryptedFileSecretStore}.kt`, `data/settings/StoredProviderRepository.kt`: DataStore chỉ metadata; AtomicFile dưới noBackup chỉ IV/ciphertext; AAD gắn endpoint; invalidation/re-entry; saved config ưu tiên debug và không fallback khi saved key lỗi.
+- Mới `data/llm/{ProviderUrl,ChatPayload,SseDecoder,ChatResponseReader,OkHttpLlmGateway}.kt`, `di/LlmModule.kt`; OkHttp/MockWebServer 5.5.1 trong version catalog/Gradle. TLS mặc định, DNS fail closed với private/local IP, không redirect/replay/logger/cache. Error body không đi vào UI/log.
+- Mới `presentation/{ProviderForm,ProviderViewModel,PanelRequestRunner,PanelResponseReducer,PanelStage}.kt`; cập nhật `PanelCoordinator`, `PanelState`, `PayloadPreviewBuilder`, `TextLimits`. Send kiểm tra provider revision/policy; retry quay review; job thuộc service scope, dismiss hủy Call thật và bỏ response cũ.
+- UI: provider form mới (`ProviderFields`, `ProviderSettingsScreen`, route ViewModel), `PayloadReviewContent`, `AiOutputContent`, strings provider/AI, callback wiring service/panel. Hiển thị model/payload/caps/ước lượng phí, ngôn ngữ đích, loading/partial/error/Copy confirmation. Không key trong SavedStateHandle/rememberSaveable.
+- Tests mới: TLS fixture, gateway/URL/SSE/payload/repository/encrypted store, provider VM, panel AI flow và Compose; cập nhật audit networking chỉ được ở data boundary. Thêm `androidTest/KeystoreSecretStoreTest` dùng alias/file UUID riêng, chưa chạy thiết bị.
+- Docs: README, TASKS, ARCHITECTURE, SECURITY_PRIVACY, DEVELOPMENT §10, TEST_PLAN, ADR-033…036; `.env.example` bỏ ghi chú “M2 chưa mạng”. `versionCode=5`, `versionName=0.2.3-m3`.
+
+**Toolchain:** đã chạy được trên macOS 15.7 x86_64, Temurin 17.0.21+9, SDK 37 (`android-37.0` r2), build-tools 36.0.0, Gradle 9.9.1. JDK/SDK/cache riêng ở `/private/tmp`, không commit binary. Lệnh/env tái chạy trong DEVELOPMENT §10.
+
+**Build/unit/lint:** PASS — lệnh thực tế:
+```text
+./gradlew :app:assembleDebug :app:testDebugUnitTest :app:lint :app:assembleDebugAndroidTest :app:generateReleaseBuildConfig
+BUILD SUCCESSFUL in 35s
+```
+JUnit XML: **238 tests, 0 failures, 0 errors, 0 skipped** (gồm M4 trước đây NOT_RUN). Lint: **0 errors, 1 warning OldTargetApi** có chủ đích. Các lỗi SSE fixture HTTP/1.1-vs-HTTP/2 và race đóng response khi cancel đã được sửa; toàn bộ suite cuối PASS. Không lấy kết quả filtered test làm tổng suite.
+
+**Security/audit:** PASS — `bash scripts/audit.sh` exit 0, 146 file code/config/script, lớn nhất `PanelCoordinator.kt` 291 dòng; không vi phạm >500 hay >300. XML parse và `git diff --check` PASS. Đã generate/check 9 field provider/model/key release đều rỗng; chưa build/phát hành APK release. `aapt2 dump permissions`: chỉ INTERNET + quyền chữ ký nội bộ androidx.core, không thêm quyền nhạy cảm. APK debug label/package/version đã kiểm tra đúng.
+
+**Instrumented/device/provider:** APK instrumented test **compile PASS**, thực thi **NOT_RUN / DEVICE_VERIFICATION_PENDING** (2 cases Keystore thật). Chưa chạy emulator/OnePlus/Zalo/Gmail, Network Inspector/logcat thực tế, 24h hoặc benchmark latency. **Không gọi provider thật bằng key người dùng**; mọi HTTP test dùng TLS server cục bộ/synthetic keys. Model/credit/key thật cần người dùng bấm connection test sau disclosure.
+
+**Rủi ro/giới hạn:** M3 qua gate JVM; MVP và device gate M4 chưa hoàn tất. Clipboard/SET_TEXT/uniqueId/AndroidKeyStore trên OEM chưa xác minh; thiếu stable ID hoặc Android <33 vẫn Copy only. Streaming provider không đồng nhất: JSON cùng response được báo fallback; SSE bị từ chối phải tự tắt streaming rồi review/gửi lại, không replay. Debug APK có thể chứa `.env` key theo ADR-029, không chia sẻ. Lệnh tooling `:app:tasks --all` gặp lỗi Compose Preview release của AGP; các gate build/test cụ thể ở trên PASS.
+
+**Bước tiếp:** cài `app/build/outputs/apk/debug/app-debug.apk` trên máy cá nhân, kiểm tra kết nối bằng dữ liệu giả rồi checklist DEVELOPMENT §10 và gate chèn M4. Sau đó triển khai M5 theo yêu cầu; không tự mở rộng phạm vi hay push remote.

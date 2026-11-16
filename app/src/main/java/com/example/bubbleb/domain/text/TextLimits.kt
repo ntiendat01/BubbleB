@@ -17,4 +17,7 @@ object TextLimits {
     /** Strips control/bidi-override characters and collapses horizontal whitespace. */
     fun normalize(text: String): String =
         text.replace(CONTROL_CHARS, "").replace(SPACES, " ").trim()
+
+    /** Display generated text without collapsing translation formatting. */
+    fun display(text: String): String = text.replace(CONTROL_CHARS, "").trim()
 }

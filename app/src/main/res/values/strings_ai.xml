@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="ai_summary_reply">AI sẽ đề xuất ba câu trả lời: Ngắn gọn, Thân thiện, Trang trọng. Không tự gửi.</string>
+    <string name="ai_summary_summarize">AI sẽ tóm tắt nội dung bên dưới thành 3–5 ý tiếng Việt, giữ số liệu và những điểm chưa chắc chắn.</string>
+    <string name="ai_summary_explain">AI sẽ giải thích các khái niệm đang hiển thị bằng tiếng Việt, nêu rõ khi thiếu ngữ cảnh.</string>
+    <string name="ai_summary_translate">AI sẽ dịch nội dung bên dưới sang ngôn ngữ bạn chọn, giữ cấu trúc và không thêm thông tin ngoài màn hình.</string>
+    <string name="ai_vietnamese">Tiếng Việt</string>
+    <string name="ai_english">Tiếng Anh</string>
+    <string name="ai_estimate">Ước lượng token input riêng phần văn bản: ~%1$d; giới hạn token output: %2$d. Chỉ là ước lượng.</string>
+    <string name="ai_price_unknown">Chưa nhập giá provider; không ước tính chi phí. Lần gửi này có thể tính phí.</string>
+    <string name="ai_price_estimate">Ước tính USD %1$s theo giá bạn nhập và output tối đa; chưa gồm chỉ dẫn, không phải hóa đơn.</string>
+    <string name="ai_loading">Đang chờ AI…</string>
+    <string name="ai_cancel">Hủy và xóa nội dung</string>
+    <string name="ai_json_fallback">Provider trả JSON thay vì SSE; đang dùng kết quả của chính request này, không gửi lại.</string>
+    <string name="ai_usage">Usage provider trả về: input %1$s · output %2$s token.</string>
+    <string name="ai_review_again">Xem lại trước khi gửi lần mới</string>
+    <string name="ai_config_changed">Cấu hình provider đã đổi. Hãy xem lại nội dung và provider trước khi gửi.</string>
+    <string name="ai_auth">Provider từ chối key hoặc quyền truy cập (401/403). Hãy kiểm tra cấu hình.</string>
+    <string name="ai_rate_limit">Đã chạm giới hạn provider (429). Hãy chờ rồi xem lại trước khi gửi lần mới.</string>
+    <string name="ai_server">Provider đang lỗi (5xx). App không tự gửi lại.</string>
+    <string name="ai_timeout">Request đã hết thời gian chờ. Provider có thể đã tính phí; kiểm tra trước khi gửi lại.</string>
+    <string name="ai_network">Không kết nối được provider hoặc kết nối bị ngắt. Provider có thể đã nhận request; app không tự gửi lại.</string>
+    <string name="ai_partial">Luồng kết quả chưa hoàn tất. Phần đang hiển thị chỉ là kết quả một phần; không thể chèn.</string>
+    <string name="ai_output_limit">Kết quả bị cắt hoặc vượt giới hạn an toàn. Phần đang hiển thị có thể chưa đầy đủ; không thể chèn.</string>
+    <string name="ai_stream_unsupported">Provider từ chối yêu cầu streaming hoặc tham số. Thử tắt streaming trong cài đặt, kiểm tra model rồi xem lại trước khi gửi lần mới.</string>
+    <string name="ai_invalid_response">Provider trả lỗi hoặc định dạng không hỗ trợ. App đã ẩn nội dung lỗi và không tự gửi lại.</string>
+</resources>

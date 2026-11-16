@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="provider_name">Tên nhà cung cấp</string>
+    <string name="provider_url">Base URL HTTPS</string>
+    <string name="provider_model">Model ID đầy đủ</string>
+    <string name="provider_key">API key</string>
+    <string name="provider_key_keep">Để trống để giữ key hiện tại khi endpoint không đổi. Key được mã hóa bằng Android Keystore khi lưu.</string>
+    <string name="provider_tokens">Giới hạn token đầu ra (64–4096)</string>
+    <string name="provider_input_cap">Giới hạn ký tự đầu vào (100–6000)</string>
+    <string name="provider_streaming">Nhận kết quả từng phần</string>
+    <string name="provider_streaming_help">Nếu nhà cung cấp không hỗ trợ streaming, hãy tắt tùy chọn này rồi xem lại nội dung trước khi gửi lại. App không tự gửi lại.</string>
+    <string name="provider_price_input">USD / 1 triệu token đầu vào (tùy chọn)</string>
+    <string name="provider_price_output">USD / 1 triệu token đầu ra (tùy chọn)</string>
+    <string name="provider_ready">Đã có cấu hình và key. Dùng kiểm tra kết nối để xác minh provider/model.</string>
+    <string name="provider_debug_note">Đang dùng cấu hình debug. Lưu cấu hình để mã hóa key trên thiết bị; APK debug có key không nên chia sẻ.</string>
+    <string name="provider_key_unavailable">Key không đọc được hoặc đã mất hiệu lực. Hãy nhập lại; app không chuyển sang lưu key dạng rõ.</string>
+    <string name="provider_save">Lưu cấu hình</string>
+    <string name="provider_saved">Đã lưu cấu hình và mã hóa key.</string>
+    <string name="provider_remove">Xóa cấu hình và key đã lưu</string>
+    <string name="provider_removed">Đã xóa; không tự dùng lại cấu hình debug.</string>
+    <string name="provider_invalid">Kiểm tra URL HTTPS, model, giới hạn ký tự/token và giá hợp lệ. Không hỗ trợ endpoint mạng nội bộ; URL không được chứa tài khoản, query hay fragment.</string>
+    <string name="provider_key_required">Hãy nhập API key hợp lệ. Đổi endpoint cần nhập lại key.</string>
+    <string name="provider_storage_failed">Không lưu hoặc đọc được kho cấu hình/key. Hãy thử lại hoặc nhập lại key.</string>
+    <string name="provider_test">Kiểm tra kết nối bằng văn bản giả</string>
+    <string name="provider_test_disclosure">Lưu trước khi kiểm tra. Nút bên dưới gửi câu thử “Reply exactly OK” đến provider/model đã lưu, không dùng dữ liệu màn hình; có thể tính phí.</string>
+    <string name="provider_test_ok">Provider đã trả về phản hồi hợp lệ cho câu thử.</string>
+    <string name="provider_test_failed">Không kiểm tra được kết nối. Kiểm tra key/model, kết nối mạng và hỗ trợ Chat Completions; app không tự gửi lại.</string>
+    <string name="provider_usage">Phiên hiện tại: %1$d lần gửi · token input %2$d · output %3$d (chỉ tính usage API trả về, không phải hóa đơn).</string>
+</resources>

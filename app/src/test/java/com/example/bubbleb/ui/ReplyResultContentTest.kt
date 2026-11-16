@@ -44,6 +44,12 @@ class ReplyResultContentTest {
         override fun onReplyAction(operation: ReplyOperation, index: Int) {
             ui = ui.copy(pending = PendingReplyAction(operation, index))
         }
+        override fun onSend() = Unit
+        override fun onTranslationSelected(language: com.example.bubbleb.domain.llm.TranslationLanguage) = Unit
+        override fun onOutputReview() = Unit
+        override fun onOutputCopyRequest() = Unit
+        override fun onOutputCopyConfirm() = Unit
+        override fun onOutputCopyCancel() = Unit
         override fun onReplyConfirm() { confirmations++; ui = ui.copy(pending = null) }
         override fun onReplyCancel() { ui = ui.copy(pending = null) }
     }
