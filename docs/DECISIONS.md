@@ -85,6 +85,9 @@ M2 chưa có LLM/provider (M3). Panel xem trước luôn hiện `Chưa cấu hì
 ## ADR-027: Panel là cửa sổ overlay riêng — accepted, needs device proof (M2)
 Panel dùng cửa sổ `TYPE_ACCESSIBILITY_OVERLAY` thứ hai (`BubbleB Panel`, ~90% chiều rộng vùng an toàn, cao tối đa 70%, cuộn được, không focusable, không có ô nhập). Bong bóng và panel loại trừ nhau. Code WindowManager dùng chung qua `OverlayWindows`. Tên app lấy từ `PackageManager`; trên Android 11+ nếu không thấy package (package visibility) thì hiển thị package name — cần kiểm tra trên OnePlus.
 
+## ADR-028: Sửa lỗi "chạm bong bóng không có gì" (0.2.1-m2) — accepted, needs device proof
+Báo cáo từ máy thật: bong bóng hiện nhưng chạm không có phản hồi. Nguyên nhân đã tái hiện trên Robolectric: `Surface` của Material3 gắn `pointerInput` rỗng nên Compose nuốt mọi chạm; `OnTouchListener` đặt trên `ComposeView` không bao giờ nhận được sự kiện (cả chạm lẫn kéo bắt đầu trên bong bóng). Test M1 cũ chạm ngoài vùng 48 px nên không phát hiện. Sửa: cửa sổ bong bóng có gốc là `TouchInterceptLayout` (chặn chạm khỏi con Compose) và listener đặt trên gốc; tree owners đặt trên view gốc. Phòng ngừa thêm (giả thuyết, chưa xác nhận trên máy): bỏ qua sự kiện foreground mang package của chính BubbleB khi Activity của BubbleB không hiển thị (đó là cửa sổ overlay của mình); capture thử lại tối đa 3 lần/120 ms nếu root là BubbleB hoặc null; mọi lỗi (kể cả exception, không thêm được cửa sổ panel) đều hiện panel có lý do hoặc Toast; log stage `BB/Service`, `BB/Overlay`, `BB/Panel` (không nội dung).
+
 ## Open device-validation questions
 - Accessibility service overlay remains usable across OxygenOS 16 lock/unlock, memory pressure and background cleanup? Track actual behavior; do not assume.
 - Do Zalo/Gmail expose text and writable input nodes reliably on this OS/build? Per-app observations only; fail gracefully otherwise.

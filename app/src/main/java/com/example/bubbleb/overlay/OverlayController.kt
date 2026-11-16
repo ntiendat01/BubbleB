@@ -2,6 +2,9 @@ package com.example.bubbleb.overlay
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
+import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
@@ -32,6 +35,7 @@ class OverlayController(
     private val calculator = BubbleLayoutCalculator(sizePx, (BubbleDefaults.EDGE_MARGIN_DP * density).roundToInt())
     private val safeArea = SafeAreaProvider(windowManager, density)
     private val dragTracker = BubbleDragTracker(ViewConfiguration.get(context).scaledTouchSlop.toFloat())
+    private val mainHandler = Handler(Looper.getMainLooper())
     private var host: OverlayWindow? = null
     private var position: BubblePosition? = null
 
@@ -62,6 +66,7 @@ class OverlayController(
             context = context,
             windowManager = windowManager,
             params = params,
+            interceptTouches = true,
             configure = { w ->
                 installTouchHandling(w)
                 installInsetsListener(w)
@@ -92,8 +97,12 @@ class OverlayController(
 
     @SuppressLint("ClickableViewAccessibility") // performClick() is invoked on tap below.
     private fun installTouchHandling(target: OverlayWindow) {
-        target.view.setOnClickListener { onTap() }
-        target.view.setOnTouchListener { v, event -> handleTouch(target, v, event) }
+        target.root.setOnClickListener {
+            Log.d(TAG, "bubble_tap")
+            // Post so the tap handler (which detaches this window) never runs inside its own dispatch.
+            mainHandler.post(onTap)
+        }
+        target.root.setOnTouchListener { v, event -> handleTouch(target, v, event) }
     }
 
     private fun handleTouch(target: OverlayWindow, view: View, event: MotionEvent): Boolean {
@@ -105,7 +114,10 @@ class OverlayController(
             }
             MotionEvent.ACTION_UP -> when (val result = dragTracker.onUp(event.rawX, event.rawY)) {
                 DragResult.Tap -> view.performClick()
-                is DragResult.DragEnd -> commitDrag(target, result.windowPosition)
+                is DragResult.DragEnd -> {
+                    Log.d(TAG, "bubble_drag_end")
+                    commitDrag(target, result.windowPosition)
+                }
                 DragResult.None -> Unit
             }
             MotionEvent.ACTION_CANCEL -> {
@@ -125,7 +137,7 @@ class OverlayController(
     }
 
     private fun installInsetsListener(target: OverlayWindow) {
-        ViewCompat.setOnApplyWindowInsetsListener(target.view) { _, insets ->
+        ViewCompat.setOnApplyWindowInsetsListener(target.root) { _, insets ->
             val ime = insets.getInsets(WindowInsetsCompat.Type.ime()).bottom
             if (ime != safeArea.observedImeBottomPx) {
                 safeArea.observedImeBottomPx = ime
@@ -136,6 +148,7 @@ class OverlayController(
     }
 
     private companion object {
+        const val TAG = "BB/Overlay"
         const val WINDOW_TITLE = "BubbleB"
     }
 }

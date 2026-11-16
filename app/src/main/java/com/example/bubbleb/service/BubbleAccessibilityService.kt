@@ -7,6 +7,8 @@ import android.os.Build
 import android.util.Log
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
+import android.widget.Toast
+import com.example.bubbleb.R
 import com.example.bubbleb.domain.Clock
 import com.example.bubbleb.domain.model.AiAction
 import com.example.bubbleb.domain.model.BubbleVisibility
@@ -82,15 +84,27 @@ class BubbleAccessibilityService : AccessibilityService() {
                 // Bubble and panel are mutually exclusive; nothing is shown while hidden by policy.
                 val bubbleVisible = visibility is BubbleVisibility.Visible
                 if (bubbleVisible && panelState == PanelState.Collapsed) controller.show(position) else controller.hide()
-                if (panelState != PanelState.Collapsed) panelController.show() else panelController.hide()
+                if (panelState == PanelState.Collapsed) {
+                    panelController.hide()
+                } else if (!panelController.show()) {
+                    Log.d(PANEL_TAG, "panel_attach_failed")
+                    Toast.makeText(this@BubbleAccessibilityService, R.string.error_panel_failed, Toast.LENGTH_SHORT).show()
+                    panelCoordinator.dismiss()
+                }
             }
+        }
+        serviceScope.launch {
+            panelCoordinator.state.collect { Log.d(PANEL_TAG, "state:" + panelCoordinator.stageOf(it)) }
         }
         serviceScope.launch {
             coordinator.isScreenLocked.collect { locked -> if (locked) panelCoordinator.dismiss() }
         }
         serviceScope.launch {
             // Policy hides the bubble (excluded app, lock, consent revoked...) => close any panel too.
-            coordinator.bubbleVisibility.collect { v -> if (v !is BubbleVisibility.Visible) panelCoordinator.dismiss() }
+            coordinator.bubbleVisibility.collect { v ->
+                Log.d(TAG, "bubble_visibility:" + if (v is BubbleVisibility.Hidden) "hidden:${v.reason}" else "visible")
+                if (v !is BubbleVisibility.Visible) panelCoordinator.dismiss()
+            }
         }
         Log.i(TAG, "service_connected")
     }
@@ -110,7 +124,11 @@ class BubbleAccessibilityService : AccessibilityService() {
         val rootPackage = readActiveRootPackage()
         if (rootPackage == null && eventPackage == packageName) return
         val foreground = rootPackage ?: eventPackage
-        coordinator.onForegroundPackageChanged(foreground)
+        // Our own overlay windows are not "the foreground app" (see BubbleCoordinator).
+        if (!coordinator.onForegroundPackageChanged(foreground)) {
+            Log.d(TAG, "foreground_ignored:own_overlay")
+            return
+        }
         panelCoordinator.onForegroundChanged(foreground)
     }
 
@@ -131,7 +149,14 @@ class BubbleAccessibilityService : AccessibilityService() {
     /** Explicit user tap: the only trigger for a (single, bounded) screen snapshot. */
     private fun onBubbleTapped() {
         val source = captureSource
-        scope?.launch { panelCoordinator.onBubbleTapped(source) }
+        val currentScope = scope
+        Log.d(PANEL_TAG, "tap_received:source=${source != null},scope=${currentScope != null},state=" +
+            panelCoordinator.stageOf(panelCoordinator.state.value))
+        if (currentScope == null) {
+            Toast.makeText(this, R.string.error_no_permission, Toast.LENGTH_SHORT).show()
+            return
+        }
+        currentScope.launch { panelCoordinator.onBubbleTapped(source) }
     }
 
     private val panelCallbacks = object : PanelCallbacks {
@@ -183,5 +208,6 @@ class BubbleAccessibilityService : AccessibilityService() {
 
     private companion object {
         const val TAG = "BB/Service"
+        const val PANEL_TAG = "BB/Panel"
     }
 }

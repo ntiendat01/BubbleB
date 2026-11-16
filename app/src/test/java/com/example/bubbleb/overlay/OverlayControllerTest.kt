@@ -87,8 +87,23 @@ class OverlayControllerTest {
         val view = attachedViews().single()
         touch(view, MotionEvent.ACTION_DOWN, 500f, 500f)
         touch(view, MotionEvent.ACTION_UP, 501f, 501f)
+        ShadowLooper.idleMainLooper() // tap is posted, never run inside the touch dispatch
         assertEquals(1, taps)
         assertTrue(committed.isEmpty())
+        controller.release()
+    }
+
+    /** Regression (M2 device report): a tap ON the Compose content must still reach the tap handler. */
+    @Test
+    fun tapOnBubbleCenter_withComposeContent_invokesOnTap() {
+        controller.show(BubblePosition(BubbleEdge.RIGHT, 0.5f))
+        ShadowLooper.idleMainLooper()
+        val view = attachedViews().single()
+        assertTrue(view.width > 0)
+        touch(view, MotionEvent.ACTION_DOWN, view.width / 2f, view.height / 2f)
+        touch(view, MotionEvent.ACTION_UP, view.width / 2f, view.height / 2f)
+        ShadowLooper.idleMainLooper()
+        assertEquals(1, taps)
         controller.release()
     }
 
@@ -100,6 +115,7 @@ class OverlayControllerTest {
         touch(view, MotionEvent.ACTION_MOVE, 500f, 700f)
         touch(view, MotionEvent.ACTION_MOVE, 50f, 600f)
         touch(view, MotionEvent.ACTION_UP, 40f, 600f)
+        ShadowLooper.idleMainLooper()
         assertEquals(0, taps)
         assertEquals(1, committed.size)
         assertEquals(BubbleEdge.LEFT, committed.single().edge)

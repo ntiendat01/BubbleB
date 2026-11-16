@@ -62,5 +62,9 @@
     <string name="error_no_content">Không đọc được nội dung màn hình này</string>
     <string name="error_share_hint">Bạn có thể dùng Chia sẻ đoạn văn bản từ ứng dụng nguồn (có ở bản sau).</string>
     <string name="error_excluded">Ứng dụng này được loại trừ để bảo vệ quyền riêng tư</string>
+    <string name="error_own_app">BubbleB không đọc màn hình của chính nó. Hãy mở ứng dụng khác rồi chạm bong bóng.</string>
+    <string name="error_locked">Màn hình đang khóa; BubbleB không đọc nội dung.</string>
+    <string name="error_capture_failed">Đã xảy ra lỗi khi đọc màn hình. Hãy thử lại.</string>
+    <string name="error_panel_failed">BubbleB không mở được bảng trên màn hình này.</string>
     <string name="error_sensitive">Màn hình có trường mật khẩu hoặc dữ liệu nhạy cảm; BubbleB không đọc.</string>
 </resources>

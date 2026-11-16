@@ -30,7 +30,8 @@ class PanelOverlayController(
 
     val isAttached: Boolean get() = window != null
 
-    fun show() {
+    /** Returns false when the panel window could not be added (caller must show feedback). */
+    fun show(): Boolean {
         val area = safeArea.currentSafeArea()
         val width = (area.width * WIDTH_FRACTION).roundToInt()
         val maxHeightPx = (area.height * MAX_HEIGHT_FRACTION).roundToInt()
@@ -43,11 +44,12 @@ class PanelOverlayController(
                 val panelState by state.collectAsState()
                 BubbleBTheme { PanelContent(panelState, appLabelFallback = "", maxHeight = maxHeightDp, callbacks) }
             }
-        } else {
-            current.params.width = width
-            position(current.params, area, width, maxHeightPx)
-            OverlayWindows.update(windowManager, current)
+            return window != null
         }
+        current.params.width = width
+        position(current.params, area, width, maxHeightPx)
+        OverlayWindows.update(windowManager, current)
+        return true
     }
 
     fun hide() {

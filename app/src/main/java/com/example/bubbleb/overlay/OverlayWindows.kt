@@ -4,6 +4,8 @@ import android.content.Context
 import android.graphics.PixelFormat
 import android.util.Log
 import android.view.Gravity
+import android.view.View
+import android.view.ViewGroup
 import android.view.WindowManager
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.ComposeView
@@ -12,9 +14,14 @@ import androidx.lifecycle.setViewTreeLifecycleOwner
 import androidx.lifecycle.setViewTreeViewModelStoreOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 
-/** One attached accessibility-overlay window: ComposeView + its own lifecycle owner + params. */
+/**
+ * One attached accessibility-overlay window: ComposeView + its own lifecycle owner + params.
+ * [root] is the view actually added to WindowManager (the ComposeView itself, or a
+ * [TouchInterceptLayout] wrapping it when the window handles raw touches).
+ */
 class OverlayWindow(
     val view: ComposeView,
+    val root: View,
     val owner: OverlayLifecycleOwner,
     val params: WindowManager.LayoutParams,
 )
@@ -45,21 +52,32 @@ object OverlayWindows {
         context: Context,
         windowManager: WindowManager,
         params: WindowManager.LayoutParams,
+        interceptTouches: Boolean = false,
         configure: (OverlayWindow) -> Unit = {},
         content: @Composable () -> Unit,
     ): OverlayWindow? {
         val owner = OverlayLifecycleOwner()
         val view = ComposeView(context)
-        view.setViewTreeLifecycleOwner(owner)
-        view.setViewTreeViewModelStoreOwner(owner)
-        view.setViewTreeSavedStateRegistryOwner(owner)
         view.setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
         view.setContent(content)
-        val window = OverlayWindow(view, owner, params)
+        val root: View = if (interceptTouches) {
+            TouchInterceptLayout(context).apply {
+                addView(view, ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
+            }
+        } else {
+            view
+        }
+        // Tree owners go on the window ROOT: Compose resolves them from the root view.
+        listOf(root, view).distinct().forEach { v ->
+            v.setViewTreeLifecycleOwner(owner)
+            v.setViewTreeViewModelStoreOwner(owner)
+            v.setViewTreeSavedStateRegistryOwner(owner)
+        }
+        val window = OverlayWindow(view, root, owner, params)
         configure(window)
         owner.createAndResume()
         return try {
-            windowManager.addView(view, params)
+            windowManager.addView(root, params)
             log("attached:${params.title}")
             window
         } catch (e: WindowManager.BadTokenException) {
@@ -73,7 +91,7 @@ object OverlayWindows {
 
     fun update(windowManager: WindowManager, window: OverlayWindow) {
         try {
-            windowManager.updateViewLayout(window.view, window.params)
+            windowManager.updateViewLayout(window.root, window.params)
         } catch (e: IllegalArgumentException) {
             log("update_not_attached")
         }
@@ -81,7 +99,7 @@ object OverlayWindows {
 
     fun detach(windowManager: WindowManager, window: OverlayWindow) {
         try {
-            windowManager.removeViewImmediate(window.view)
+            windowManager.removeViewImmediate(window.root)
         } catch (e: IllegalArgumentException) {
             log("remove_not_attached")
         }
@@ -98,6 +116,6 @@ object OverlayWindows {
     }
 
     private fun log(stage: String) {
-        Log.i(TAG, stage)
+        Log.d(TAG, stage)
     }
 }

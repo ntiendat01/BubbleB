@@ -72,6 +72,8 @@ Chưa có script tự động cho M2 (cần chạm vào app thật). Checklist t
 6. `adb logcat -s BB/Service BB/Overlay` chỉ có stage, không có text màn hình hay package name. Không có request mạng (ví dụ kiểm bằng Network Inspector/`adb shell dumpsys netstats`).
 Ghi kết quả `SUPPORTED/PARTIAL/UNSUPPORTED` từng app (Zalo, Gmail, Chrome).
 
+Chẩn đoán khi chạm bong bóng không phản hồi: `adb logcat -c && adb logcat -v time -s BB/Service:D BB/Overlay:D BB/Panel:D`. Chuỗi mong đợi: `bubble_tap` → `tap_received` → `state:capturing` → `capture_done:…` → `state:actions…` hoặc `state:blocked/unavailable…,cause=…`. Thiếu `bubble_tap` = chạm không tới listener; có `foreground_ignored:own_overlay` là bình thường; `panel_attach_failed` = không thêm được cửa sổ panel.
+
 ## 8. Quyền trong APK đã merge
 Kiểm tra bằng `aapt2 dump permissions app/build/outputs/apk/debug/app-debug.apk`:
 - `android.permission.INTERNET` (khai báo trực tiếp, dùng từ M3).

@@ -89,14 +89,14 @@ class PanelCoordinatorTest {
         profiles.excluded.value = setOf(ScreenFixtures.PKG)
         val source = FakeCaptureSource(ScreenFixtures.chat())
         panel.onBubbleTapped(source)
-        assertEquals(PanelState.Blocked(BlockedReason.EXCLUDED_APP), panel.state.value)
+        assertEquals(PanelState.Blocked(BlockedReason.EXCLUDED_APP, CaptureFailure.EXCLUDED_APP), panel.state.value)
         assertEquals(0, source.textReads)
     }
 
     @Test fun ownApp_blocked() = runTest {
         val source = FakeCaptureSource(ScreenFixtures.chat(), pkg = own)
         panel.onBubbleTapped(source)
-        assertTrue(panel.state.value is PanelState.Blocked)
+        assertEquals(PanelState.Blocked(BlockedReason.OWN_APP, CaptureFailure.OWN_APP), panel.state.value)
         assertEquals(0, source.textReads)
     }
 
@@ -104,13 +104,13 @@ class PanelCoordinatorTest {
         bubble.onScreenLockChanged(true)
         val source = FakeCaptureSource(ScreenFixtures.chat())
         panel.onBubbleTapped(source)
-        assertTrue(panel.state.value is PanelState.Blocked)
+        assertEquals(PanelState.Blocked(BlockedReason.SCREEN_LOCKED, CaptureFailure.SCREEN_LOCKED), panel.state.value)
         assertEquals(0, source.textReads)
     }
 
     @Test fun passwordScreen_sensitiveBlocked() = runTest {
         panel.onBubbleTapped(FakeCaptureSource(ScreenFixtures.withPassword()))
-        assertEquals(PanelState.Blocked(BlockedReason.SENSITIVE_SCREEN), panel.state.value)
+        assertEquals(PanelState.Blocked(BlockedReason.SENSITIVE_SCREEN, CaptureFailure.SENSITIVE_SCREEN), panel.state.value)
         assertNull(panel.capturedPackage)
     }
 
@@ -118,7 +118,7 @@ class PanelCoordinatorTest {
         listOf(FakeCaptureSource(ScreenFixtures.emptyTree()), FakeCaptureSource(ScreenFixtures.protectedView()), FakeCaptureSource(null))
             .forEach { src ->
                 panel.onBubbleTapped(src)
-                assertEquals(PanelState.Unavailable(UnavailableReason.NO_ACCESSIBLE_CONTENT), panel.state.value)
+                assertEquals(UnavailableReason.NO_ACCESSIBLE_CONTENT, (panel.state.value as PanelState.Unavailable).reason)
                 panel.dismiss()
             }
     }
@@ -169,5 +169,34 @@ class PanelCoordinatorTest {
         panel.onForegroundChanged("com.other.app")
         assertEquals(PanelState.Collapsed, panel.state.value)
         assertNull(panel.capturedPackage)
+    }
+
+    @Test fun captureThrows_showsErrorInsteadOfSilence() = runTest {
+        val throwing = object : ScreenCaptureSource {
+            override suspend fun capture(preflight: (String?) -> CaptureFailure?): CaptureResult =
+                throw IllegalStateException("node api failed")
+        }
+        panel.onBubbleTapped(throwing)
+        assertEquals(PanelState.Unavailable(UnavailableReason.CAPTURE_ERROR), panel.state.value)
+    }
+
+    @Test fun everyCaptureFailure_mapsToVisibleNonCollapsedState() = runTest {
+        CaptureFailure.entries.forEach { failure ->
+            val source = object : ScreenCaptureSource {
+                override suspend fun capture(preflight: (String?) -> CaptureFailure?) = CaptureResult.Failure(failure)
+            }
+            panel.onBubbleTapped(source)
+            val state = panel.state.value
+            assertTrue("$failure -> $state", state is PanelState.Blocked || state is PanelState.Unavailable)
+            assertTrue(panel.stageOf(state).contains(failure.name))
+            panel.dismiss()
+        }
+    }
+
+    @Test fun stageLogsContainNoScreenText() = runTest {
+        panel.onBubbleTapped(FakeCaptureSource(ScreenFixtures.chat()))
+        panel.onActionSelected(AiAction.SUMMARIZE)
+        val stage = panel.stageOf(panel.state.value)
+        listOf("Lan", "0912", "Tối nay", ScreenFixtures.PKG, "Chat").forEach { assertFalse(stage.contains(it)) }
     }
 }

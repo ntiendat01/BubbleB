@@ -31,6 +31,7 @@ class BubbleCoordinator @Inject constructor(
     private val serviceConnectedState = MutableStateFlow(false)
     private val foregroundPackage = MutableStateFlow<String?>(null)
     private val screenLocked = MutableStateFlow(false)
+    private var ownUiVisible = false
 
     /** Latest lock state as observed by the service (policy, not a guarantee). */
     val isScreenLocked: StateFlow<Boolean> = screenLocked.asStateFlow()
@@ -72,8 +73,23 @@ class BubbleCoordinator @Inject constructor(
         screenLocked.value = false
     }
 
-    fun onForegroundPackageChanged(packageName: String?) {
-        foregroundPackage.value = packageName?.takeIf { it.isNotBlank() }
+    /**
+     * Returns false when the update is ignored. Our own package is only accepted as foreground
+     * while a BubbleB Activity is visible: otherwise the event/root came from our own non-focusable
+     * overlay (bubble or panel window), and treating it as "BubbleB in foreground" would hide the
+     * bubble and instantly close the panel the user just opened (M2 device report).
+     */
+    fun onForegroundPackageChanged(packageName: String?): Boolean {
+        val pkg = packageName?.takeIf { it.isNotBlank() }
+        if (pkg == ownPackage && !ownUiVisible) return false
+        foregroundPackage.value = pkg
+        return true
+    }
+
+    /** Called by BubbleB's own Activity (onStart/onStop). */
+    fun onOwnUiVisibilityChanged(visible: Boolean) {
+        ownUiVisible = visible
+        if (visible) foregroundPackage.value = ownPackage
     }
 
     fun onScreenLockChanged(locked: Boolean) {

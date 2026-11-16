@@ -99,4 +99,24 @@ class BubbleCoordinatorTest {
         coordinator.saveBubblePosition(pos)
         assertEquals(pos, coordinator.bubblePosition.first())
     }
+
+    @Test
+    fun ownOverlayWindow_isIgnoredAsForeground_keepsBubbleVisible() = runTest {
+        coordinator.onServiceConnected()
+        coordinator.onForegroundPackageChanged("com.example.notes")
+        assertFalse(coordinator.onForegroundPackageChanged(own)) // event from our own overlay window
+        assertEquals(BubbleVisibility.Visible, visibility())
+    }
+
+    @Test
+    fun ownActivityVisible_hidesBubble_thenOtherAppShowsIt() = runTest {
+        coordinator.onServiceConnected()
+        coordinator.onForegroundPackageChanged("com.example.notes")
+        coordinator.onOwnUiVisibilityChanged(true)
+        assertTrue(visibility() is BubbleVisibility.Hidden)
+        assertTrue(coordinator.onForegroundPackageChanged(own))
+        coordinator.onOwnUiVisibilityChanged(false)
+        coordinator.onForegroundPackageChanged("com.example.notes")
+        assertEquals(BubbleVisibility.Visible, visibility())
+    }
 }

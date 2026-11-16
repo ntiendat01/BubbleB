@@ -11,6 +11,7 @@ import com.example.bubbleb.domain.repository.ScreenCaptureSource
 import com.example.bubbleb.domain.usecase.PayloadPreviewBuilder
 import com.example.bubbleb.domain.usecase.ScreenHeuristics
 import javax.inject.Inject
+import kotlinx.coroutines.CancellationException
 import javax.inject.Singleton
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -49,7 +50,15 @@ class PanelCoordinator @Inject constructor(
         mutableState.value = PanelState.Capturing
         val excluded = appProfileRepository.excludedPackages.first()
         val locked = bubbleCoordinator.isScreenLocked.value
-        val result = source.capture { pkg -> CapturePreflight.check(pkg, ownPackage, excluded, locked) }
+        val result = try {
+            source.capture { pkg -> CapturePreflight.check(pkg, ownPackage, excluded, locked) }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: RuntimeException) {
+            // Never fail silently: OEM accessibility stacks can throw from node APIs.
+            if (id == requestId) mutableState.value = PanelState.Unavailable(UnavailableReason.CAPTURE_ERROR)
+            return
+        }
         if (id != requestId || mutableState.value != PanelState.Capturing) return // dismissed meanwhile
         mutableState.value = when (result) {
             is CaptureResult.Failure -> failureState(result.reason)
@@ -106,11 +115,23 @@ class PanelCoordinator @Inject constructor(
         if (captured == null || packageName != captured) dismiss()
     }
 
+    /** Every failure maps to a visible panel message (never silence). */
     private fun failureState(reason: CaptureFailure): PanelState = when (reason) {
-        CaptureFailure.EXCLUDED_APP, CaptureFailure.OWN_APP, CaptureFailure.SCREEN_LOCKED ->
-            PanelState.Blocked(BlockedReason.EXCLUDED_APP)
-        CaptureFailure.SENSITIVE_SCREEN -> PanelState.Blocked(BlockedReason.SENSITIVE_SCREEN)
+        CaptureFailure.EXCLUDED_APP -> PanelState.Blocked(BlockedReason.EXCLUDED_APP, reason)
+        CaptureFailure.OWN_APP -> PanelState.Blocked(BlockedReason.OWN_APP, reason)
+        CaptureFailure.SCREEN_LOCKED -> PanelState.Blocked(BlockedReason.SCREEN_LOCKED, reason)
+        CaptureFailure.SENSITIVE_SCREEN -> PanelState.Blocked(BlockedReason.SENSITIVE_SCREEN, reason)
         CaptureFailure.NO_ROOT, CaptureFailure.UNKNOWN_PACKAGE, CaptureFailure.NO_TEXT ->
-            PanelState.Unavailable(UnavailableReason.NO_ACCESSIBLE_CONTENT)
+            PanelState.Unavailable(UnavailableReason.NO_ACCESSIBLE_CONTENT, reason)
+    }
+
+    /** Content-free description of the current state for `BB/Panel` stage logs. */
+    fun stageOf(state: PanelState): String = when (state) {
+        PanelState.Collapsed -> "collapsed"
+        PanelState.Capturing -> "capturing"
+        is PanelState.Actions -> "actions:reply=${state.replyEligible},type=${state.screenType}"
+        is PanelState.PreviewConsent -> "preview:${state.action},redactions=${state.preview.redactionCounts.values.sum()}"
+        is PanelState.Unavailable -> "unavailable:${state.reason},cause=${state.cause}"
+        is PanelState.Blocked -> "blocked:${state.reason},cause=${state.cause}"
     }
 }

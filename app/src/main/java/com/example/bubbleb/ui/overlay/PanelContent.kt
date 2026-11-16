@@ -142,6 +142,7 @@ private fun Review(state: PanelState.PreviewConsent, callbacks: PanelCallbacks) 
 private fun Unavailable(reason: UnavailableReason) {
     when (reason) {
         UnavailableReason.PERMISSION_REQUIRED -> Message(stringResource(R.string.error_no_permission))
+        UnavailableReason.CAPTURE_ERROR -> Message(stringResource(R.string.error_capture_failed))
         UnavailableReason.NO_ACCESSIBLE_CONTENT -> {
             Message(stringResource(R.string.error_no_content))
             Text(stringResource(R.string.error_share_hint), style = MaterialTheme.typography.bodySmall)
@@ -157,4 +158,6 @@ private fun Message(text: String) {
 private fun blockedText(reason: BlockedReason): Int = when (reason) {
     BlockedReason.EXCLUDED_APP -> R.string.error_excluded
     BlockedReason.SENSITIVE_SCREEN -> R.string.error_sensitive
+    BlockedReason.OWN_APP -> R.string.error_own_app
+    BlockedReason.SCREEN_LOCKED -> R.string.error_locked
 }
