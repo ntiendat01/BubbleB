@@ -12,8 +12,8 @@ enum class UnavailableReason { NO_ACCESSIBLE_CONTENT, PERMISSION_REQUIRED, CAPTU
 enum class BlockedReason { EXCLUDED_APP, SENSITIVE_SCREEN, OWN_APP, SCREEN_LOCKED }
 
 /**
- * Overlay panel state machine for M2 (ARCHITECTURE.md §6, up to PreviewConsent). Holds only
- * sanitized, display-ready data; the raw ScreenContext stays private in [PanelCoordinator].
+ * Ephemeral panel states, including M4 results awaiting M3 transport integration. Holds only
+ * display-ready output/preview; the raw ScreenContext stays private in [PanelCoordinator].
  */
 sealed interface PanelState {
     data object Collapsed : PanelState
@@ -35,6 +35,9 @@ sealed interface PanelState {
         val action: AiAction get() = preview.action
         val canSend: Boolean get() = providerConfigured && !preview.mostlyRedacted && preview.codePoints > 0
     }
+
+    data class AwaitingReply(val appLabel: String, val requestId: Long) : PanelState
+    data class Replies(val appLabel: String, val reply: ReplyUiState) : PanelState
 
     /** [cause] is the exact capture failure, kept for stage logging (enum only, no content). */
     data class Unavailable(val reason: UnavailableReason, val cause: CaptureFailure? = null) : PanelState

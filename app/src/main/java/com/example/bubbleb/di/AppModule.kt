@@ -10,6 +10,8 @@ import com.example.bubbleb.data.db.AppProfileDao
 import com.example.bubbleb.data.db.BubbleBDatabase
 import com.example.bubbleb.data.db.RoomAppProfileRepository
 import com.example.bubbleb.data.settings.DataStoreSettingsRepository
+import com.example.bubbleb.data.reply.ReplyJsonParser
+import com.example.bubbleb.domain.reply.ReplyParser
 import com.example.bubbleb.domain.Clock
 import com.example.bubbleb.domain.repository.AccessibilityStatusSource
 import com.example.bubbleb.domain.repository.AppProfileRepository
@@ -52,6 +54,9 @@ object AppProvidesModule {
 
     @Provides
     fun provideClock(): Clock = Clock { System.currentTimeMillis() }
+
+    @Provides
+    fun provideReplyParser(): ReplyParser = ReplyJsonParser()
 }
 
 @Module

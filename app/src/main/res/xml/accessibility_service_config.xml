@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  canRetrieveWindowContent is declared per docs/ARCHITECTURE.md. Window-state events only update the
-  foreground package name; screen text is read ONLY after an explicit bubble tap (bounded snapshot).
+  Window-state events update the foreground package; editor events invalidate an open user-created
+  snapshot using metadata only. Event text/source is never read. Screen capture requires a tap.
   flagRetrieveInteractiveWindows is intentionally NOT requested (least privilege).
 -->
 <accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
-    android:accessibilityEventTypes="typeWindowStateChanged"
+    android:accessibilityEventTypes="typeWindowStateChanged|typeViewFocused|typeViewTextChanged|typeViewTextSelectionChanged"
     android:accessibilityFeedbackType="feedbackGeneric"
     android:accessibilityFlags="flagDefault"
     android:canRetrieveWindowContent="true"

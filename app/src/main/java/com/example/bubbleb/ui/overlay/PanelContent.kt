@@ -30,13 +30,17 @@ import com.example.bubbleb.R
 import com.example.bubbleb.domain.model.AiAction
 import com.example.bubbleb.presentation.BlockedReason
 import com.example.bubbleb.presentation.PanelState
+import com.example.bubbleb.presentation.ReplyOperation
 import com.example.bubbleb.presentation.UnavailableReason
 
-/** UI callbacks; there is deliberately no callback that sends, inserts or auto-acts. */
+/** Every write requires a separate user confirmation; no callback sends a message. */
 interface PanelCallbacks {
     fun onClose()
     fun onAction(action: AiAction)
     fun onPreviewCancel()
+    fun onReplyAction(operation: ReplyOperation, index: Int)
+    fun onReplyConfirm()
+    fun onReplyCancel()
 }
 
 /** Non-focusable overlay panel (no text input). Scrolls within [maxHeight]. */
@@ -51,6 +55,8 @@ fun PanelContent(state: PanelState, appLabelFallback: String, maxHeight: Dp, cal
         Column(Modifier.padding(16.dp)) {
             val label = (state as? PanelState.Actions)?.appLabel
                 ?: (state as? PanelState.PreviewConsent)?.preview?.appLabel
+                ?: (state as? PanelState.AwaitingReply)?.appLabel
+                ?: (state as? PanelState.Replies)?.appLabel
                 ?: appLabelFallback
             PanelHeader(label, callbacks::onClose)
             Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -59,6 +65,8 @@ fun PanelContent(state: PanelState, appLabelFallback: String, maxHeight: Dp, cal
                     PanelState.Capturing -> Capturing()
                     is PanelState.Actions -> ActionList(state, callbacks)
                     is PanelState.PreviewConsent -> Review(state, callbacks)
+                    is PanelState.AwaitingReply -> Text(stringResource(R.string.reply_waiting))
+                    is PanelState.Replies -> ReplyResultContent(state.reply, callbacks)
                     is PanelState.Unavailable -> Unavailable(state.reason)
                     is PanelState.Blocked -> Message(stringResource(blockedText(state.reason)))
                 }

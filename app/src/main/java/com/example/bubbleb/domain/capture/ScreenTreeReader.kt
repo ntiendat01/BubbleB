@@ -7,6 +7,7 @@ import com.example.bubbleb.domain.model.CaptureResult
 import com.example.bubbleb.domain.model.CaptureStats
 import com.example.bubbleb.domain.model.ElementRole
 import com.example.bubbleb.domain.model.InputSnapshot
+import com.example.bubbleb.domain.model.InputTarget
 import com.example.bubbleb.domain.model.ScreenContext
 import com.example.bubbleb.domain.model.ScreenElement
 import com.example.bubbleb.domain.text.TextLimits
@@ -35,6 +36,7 @@ class ScreenTreeReader(
     private class Accumulator {
         val elements = mutableListOf<ScreenElement>()
         var focusedInput: InputSnapshot? = null
+        var focusedInputCount = 0
         var visited = 0
         var maxDepth = 0
         var totalCodePoints = 0
@@ -66,7 +68,8 @@ class ScreenTreeReader(
             acc.elements.sortedWith(compareBy<ScreenElement>({ it.bounds.top }, { it.bounds.left }, { it.order })),
         )
         if (ordered.none { it.role != ElementRole.INPUT }) return CaptureResult.Failure(CaptureFailure.NO_TEXT)
-        val context = ScreenContext(packageName, appLabel, ordered, acc.focusedInput, capturedAtMs)
+        val input = acc.focusedInput.takeIf { acc.focusedInputCount == 1 }
+        val context = ScreenContext(packageName, appLabel, ordered, input, capturedAtMs)
         val stats = CaptureStats(acc.visited, acc.maxDepth, acc.hitNodeCap, acc.hitDepthCap, acc.hitTimeBudget, acc.truncated)
         return CaptureResult.Success(context, stats)
     }
@@ -81,13 +84,22 @@ class ScreenTreeReader(
 
     private fun collect(node: ScreenNode, acc: Accumulator) {
         if (node.isEditable) {
-            val draft = if (node.isShowingHintText) "" else node.text.orEmpty()
+            val rawDraft = node.text
+            val draft = if (node.isShowingHintText) "" else rawDraft.orEmpty()
+            if (node.isFocused) acc.focusedInputCount++
             if (node.isFocused && acc.focusedInput == null) {
                 acc.focusedInput = InputSnapshot(
-                    text = draft,
+                    text = TextLimits.truncate(draft, limits.maxNodeCodePoints),
                     selectionStart = node.selectionStart.takeIf { it >= 0 },
                     selectionEnd = node.selectionEnd.takeIf { it >= 0 },
                     isPassword = false,
+                    target = node.uniqueId?.takeIf { it.isNotBlank() }?.let { id ->
+                        node.packageName?.takeIf { it.isNotBlank() && node.windowId >= 0 }
+                            ?.let { InputTarget(it, node.windowId, id) }
+                    },
+                    capturedAtElapsedMs = elapsedClock.nowMs(),
+                    isTextComplete = (node.isShowingHintText || rawDraft != null) &&
+                        TextLimits.codePointLength(draft) <= limits.maxNodeCodePoints,
                 )
             }
             addElement(draft, ElementRole.INPUT, node, acc)

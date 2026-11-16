@@ -22,7 +22,7 @@ class NoNetworkAuditTest {
     }
 
     @Test fun noScreenTextLoggedInCaptureCode() {
-        val dirs = listOf("domain/capture", "domain/privacy", "domain/usecase", "presentation")
+        val dirs = listOf("domain/capture", "domain/privacy", "domain/usecase", "domain/reply", "data/reply", "presentation")
         val base = File("src/main/java/com/example/bubbleb")
         val offenders = dirs.flatMap { d -> File(base, d).walkTopDown().filter { it.isFile }.toList() }
             .filter { it.readText().contains("Log.") || it.readText().contains("println(") }

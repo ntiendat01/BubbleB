@@ -67,3 +67,19 @@
 
 ## Release gate
 All P0 functional+security tests PASS, or a documented platform-unavailable behavior with fail-safe fallback and explicit acceptance. **Any data leak / silent overwrite / unauthorized remote request is release blocking.** Hardware-dependent cases are not PASS until physically run.
+
+## M4 — trạng thái và kiểm thử bổ sung (2026-11-16)
+**Tất cả tests Kotlin mới: NOT_RUN** (thiếu Java Runtime trên máy hiện tại). Không coi test source hoặc kiểm tra XML/audit là bằng chứng biên dịch hay hành vi trên Android. Chưa có luồng M3 trong app để chạy nghiệm thu Reply toàn trình. Checklist thiết bị/reproduction nằm ở `DEVELOPMENT.md` §9.
+
+| Test source | Các trường hợp phải chứng minh khi chạy |
+|---|---|
+| `ReplyJsonParserTest` | Đúng ba nhãn/text; sai schema/type/length/nesting → Copy only; bỏ control/bidi, giữ Unicode; output rỗng không có thao tác. |
+| `InputSnapshotTest` | DTO định danh/thời gian, giới hạn draft, text không xác định, thiếu ID, nhiều ô focus. |
+| `InsertionPolicyTest` | Ô trống đúng mục tiêu mới được ghi; đổi package/window/ID/cursor/focus; nháp/whitespace/password; thiếu dữ liệu; hết hạn/đồng hồ lùi. |
+| `GuardedTextInserterTest` | Lấy lại trước ghi và đọc hậu điều kiện; khóa/đổi draft không ghi; false/exception không tuyên bố thành công/không retry; luôn giải phóng phiên. |
+| `ReplySessionTest` | Tap chưa ghi; Hủy không ghi; xác nhận tiêu thụ một lần; lỗi chèn không tự Copy; fallback/draft Copy only; clipboard lỗi không lộ chi tiết. |
+| `ReplyFlowTest` | Preview + provider readiness + Send; request ID cũ bị bỏ; đổi editor/window/app xóa context; consent/lock/exclusion chặn ghi; hủy khi policy read đang suspend không Copy muộn. |
+| `AndroidReplyAdaptersTest` (Robolectric API 26/35) | Clipboard chỉ đổi khi gọi port, gắn sensitive flag; password input variations chặn dù cờ accessibility password sai. |
+| `ReplyResultContentTest` (Robolectric Compose) | Ba lựa chọn, xác nhận Copy/chèn/Hủy; malformed JSON chỉ hiển thị text và Copy. |
+
+Chạy đầy đủ `./gradlew :app:assembleDebug :app:testDebugUnitTest :app:lint` khi có toolchain. Kiểm thử thật fixture/Zalo/Gmail/OnePlus, hành vi clipboard trong overlay không focus và tính ổn định uniqueId vẫn **DEVICE_VERIFICATION_PENDING**; nếu không hỗ trợ thì ghi rõ Copy/manual paste hoặc UNSUPPORTED, không tự mở rộng quyền.

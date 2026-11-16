@@ -51,6 +51,8 @@ Require consent checkbox/tap after scroll/read; persist only notice version+time
 - Never execute "send", "pay", "click", "delete", "grant permission" based on LLM output.
 
 ## 8. Insertion safeguards
+- M4 triển khai bảo thủ: chỉ ô trống, selection 0/0, snapshot text đầy đủ, package/window/uniqueId ổn định và tuổi monotonic ≤120 giây. Thiếu dữ liệu/API <33/nháp khác rỗng → Copy only; không có Replace. Tham khảo ADR-031 và checklist DEVELOPMENT §9; hành vi thiết bị chưa được xác minh.
+- Copy có bước xác nhận thay clipboard; không đọc clipboard cũ và không tự Copy khi chèn lỗi. Clip gắn sensitive flag, không hứa riêng tư tuyệt đối. Event editor chỉ dùng metadata trong phiên người dùng đang mở để vô hiệu snapshot, không đọc event text/source (ADR-032).
 - Explicit opt-in each insert; no send automation.
 - On input change, focus change, package/window change, password field or unknown cursor: abort insertion; keep result available to copy.
 - Treat `ACTION_SET_TEXT` as replace-all; when draft nonempty, copy-by-default unless separate Replace confirmation is shown. Selection-based insertion is not promised for MVP.

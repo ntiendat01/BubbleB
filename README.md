@@ -1,6 +1,8 @@
 # BubbleB v0.2 — Android AI Context Utility
 
-**Trạng thái:** Specifications ready for implementation · **Ngày:** 2026-11-16 · **Ngôn ngữ:** Vietnamese
+**Trạng thái:** Đang phát triển Android MVP · **Ngày:** 2026-11-16 · **Ngôn ngữ:** Vietnamese
+
+**Tiến độ code hiện tại:** M2.1 đã triển khai; có phần độc lập của M4 (schema Reply, Copy/xác nhận chèn an toàn), chưa nghiệm thu. M3 chưa triển khai nên bản hiện tại chưa gọi AI, nút gửi vẫn vô hiệu. M4 còn chờ nối M3, build/tests và kiểm chứng thiết bị; xem `docs/TASKS.md`.
 
 BubbleB là bong bóng tiện ích Android: người dùng **chủ động chạm** để trích xuất văn bản được hỗ trợ từ ứng dụng đang hiển thị, lựa chọn hành động AI (Reply / Summarize / Explain / Translate), xem kết quả trong panel và **tự xác nhận** trước khi sao chép/chèn nội dung. Có persona theo ứng dụng, đa nhà cung cấp LLM và phương án Android Share để xử lý đoạn văn bản được chọn.
 
@@ -18,7 +20,7 @@ BubbleB là bong bóng tiện ích Android: người dùng **chủ động chạ
 
 ## Phạm vi bàn giao
 
-Đây là **bộ tài liệu để agent viết code**, **không phải source code/APK hoàn chỉnh**. Không có API key hoặc dữ liệu thực trong ZIP.
+Repository gồm source Android và bộ đặc tả dưới `docs/`; **MVP chưa hoàn chỉnh**. Không đưa API key hoặc dữ liệu thực vào commit hay gói bàn giao.
 
 **Thiết bị đích:** OnePlus Ace 5 / OxygenOS 16 (cần xác nhận `Build.VERSION.SDK_INT` trên thiết bị). `minSdk=26` là quyết định sản phẩm, **không phải** API tối thiểu của accessibility overlay. `compileSdk`, `targetSdk` và phiên bản dependency phải là bản stable tương thích có thể xác minh trong môi trường build; agent phải ghi phiên bản thực tế vào README kỹ thuật khi code.
 
@@ -32,8 +34,8 @@ Model mặc định đã chọn: `deepseek-ai/DeepSeek-V4.1-Flash-1017` tại ga
 
 ## Giao task cho agent
 
-> Đọc `AGENTS.md`, `docs/PRODUCT_SPEC.md`, `docs/ARCHITECTURE.md`, `docs/SECURITY_PRIVACY.md` và `docs/TASKS.md`. Triển khai **M0 và M1 trước**, không tự mở rộng scope; mỗi milestone báo file thay đổi, lệnh build/test, kết quả, hạn chế và bằng chứng kiểm thử. Không file code nào >500 dòng. Không hardcode API key. Không thực hiện thao tác tự động gửi tin nhắn. Nếu chưa xác minh được trên máy OnePlus, đánh dấu `DEVICE_VERIFICATION_PENDING`, không tuyên bố đã hoạt động.
+> Đọc `AGENTS.md`, `docs/PRODUCT_SPEC.md`, `docs/ARCHITECTURE.md`, `docs/SECURITY_PRIVACY.md` và `docs/TASKS.md`. Triển khai milestone người dùng yêu cầu theo tiến độ thực tế; ghi rõ phụ thuộc/gate còn thiếu, không tự mở rộng scope. Mỗi milestone báo file thay đổi, lệnh build/test, kết quả, hạn chế và bằng chứng kiểm thử. Không file code nào >500 dòng. Không hardcode API key. Không thực hiện thao tác tự động gửi tin nhắn. Nếu chưa xác minh được trên máy OnePlus, đánh dấu `DEVICE_VERIFICATION_PENDING`, không tuyên bố đã hoạt động.
 
 ## Cách sử dụng bản đặc tả
 
-Agent nên tạo project Android ở **gốc repository**; giữ tài liệu dưới `docs/`. Tất cả các mục **P0** là điều kiện bắt buộc trước khi coi MVP hoàn thành. Các mục deferred không nên tự triển khai.
+Project Android ở **gốc repository**, tài liệu dưới `docs/`. Tất cả các mục **P0** là điều kiện bắt buộc trước khi coi MVP hoàn thành. Các mục deferred không nên tự triển khai.

@@ -21,7 +21,13 @@ data class InputSnapshot(
     val selectionStart: Int?,
     val selectionEnd: Int?,
     val isPassword: Boolean,
+    val target: InputTarget? = null,
+    val capturedAtElapsedMs: Long? = null,
+    val isTextComplete: Boolean = false,
 )
+
+/** Stable platform identity, never a retained AccessibilityNodeInfo. Missing identity = Copy only. */
+data class InputTarget(val packageName: String, val windowId: Int, val uniqueId: String)
 
 data class ScreenContext(
     val packageName: String,

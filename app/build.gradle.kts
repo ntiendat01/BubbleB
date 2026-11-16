@@ -57,8 +57,8 @@ android {
         applicationId = "com.example.bubbleb"
         minSdk = 26
         targetSdk = 36
-        versionCode = 3
-        versionName = "0.2.1-m2"
+        versionCode = 4
+        versionName = "0.2.2-m4-preview"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -125,6 +125,7 @@ dependencies {
     implementation(libs.androidx.navigation3.runtime)
     implementation(libs.androidx.navigation3.ui)
     implementation(libs.kotlinx.serialization.core)
+    implementation(libs.kotlinx.serialization.json)
     implementation(libs.kotlinx.coroutines.android)
 
     implementation(libs.androidx.compose.ui)

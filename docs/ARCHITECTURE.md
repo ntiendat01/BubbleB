@@ -161,3 +161,10 @@ State data: action, provider label, context preview sanitized, `requestId`, inpu
 - Version pinning via Gradle version catalog (if desired) and stable verified Compose/Kotlin/AGP/Hilt compatibility; record exact versions in build README.
 - CI: format/lint, unit tests, build Debug. Nightly instrumented UI tests only if device available; manually run OnePlus matrix.
 - Each code/config/test file <=500 physical lines; tracked in AGENTS.md.
+
+## 10. Ranh giới triển khai M4 (chờ tích hợp M3)
+- `data/reply/ReplyJsonParser` triển khai `ReplyParser` của domain: đúng ba nhãn, giới hạn text/độ sâu JSON, làm sạch text hiển thị; output sai chỉ được Copy.
+- `presentation/ReplySession` giữ kết quả/xác nhận tạm trong RAM; `PanelCoordinator` quản lý request ID và xóa phiên khi context mất hiệu lực. Không đưa response mạng giả vào UI sản phẩm.
+- `domain/reply/InsertionPolicy` và `GuardedTextInserter` kiểm tra DTO, điều phối một lần ghi đồng bộ; `service/AccessibilityTextInserter` cung cấp phiên node Android ngắn. API <33 hoặc thiếu stable node ID dùng Copy có xác nhận.
+- Thao tác ghi editor duy nhất là `ACTION_SET_TEXT` cho mục tiêu trống đã xác thực. Clipboard dùng port `ReplyClipboard` riêng sau xác nhận. Không tự retry/paste/replace/Send.
+- Event metadata editor chỉ vô hiệu snapshot do người dùng chủ động tạo; không tự đọc text. Xem ADR-030…032 và `DEVELOPMENT.md` §9 cho phần tích hợp/kiểm thử thiết bị còn thiếu.

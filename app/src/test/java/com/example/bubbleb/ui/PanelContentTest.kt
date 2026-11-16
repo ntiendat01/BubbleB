@@ -16,6 +16,7 @@ import com.example.bubbleb.domain.privacy.Redactor
 import com.example.bubbleb.domain.usecase.PayloadPreview
 import com.example.bubbleb.presentation.BlockedReason
 import com.example.bubbleb.presentation.PanelState
+import com.example.bubbleb.presentation.ReplyOperation
 import com.example.bubbleb.presentation.UnavailableReason
 import com.example.bubbleb.ui.overlay.PanelCallbacks
 import com.example.bubbleb.ui.overlay.PanelContent
@@ -39,6 +40,9 @@ class PanelContentTest {
         override fun onClose() { closes++ }
         override fun onAction(action: AiAction) { actions += action }
         override fun onPreviewCancel() { cancels++ }
+        override fun onReplyAction(operation: ReplyOperation, index: Int) = Unit
+        override fun onReplyConfirm() = Unit
+        override fun onReplyCancel() = Unit
     }
 
     private fun show(state: PanelState) = rule.setContent {

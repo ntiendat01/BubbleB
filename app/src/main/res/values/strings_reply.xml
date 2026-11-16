@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="reply_result_title">Gợi ý trả lời</string>
+    <string name="reply_manual_send">Bạn tự kiểm tra và gửi tin nhắn. BubbleB không bấm Gửi.</string>
+    <string name="reply_waiting">Đang chờ gợi ý trả lời… Bạn có thể đóng bảng để hủy.</string>
+    <string name="reply_copy">Sao chép</string>
+    <string name="reply_insert">Chèn vào ô trống…</string>
+    <string name="reply_confirm_copy">Xác nhận sao chép</string>
+    <string name="reply_confirm_insert">Xác nhận chèn</string>
+    <string name="reply_copy_warning">Sao chép sẽ thay thế nội dung clipboard hiện tại. Nội dung có thể được truy cập qua hệ thống Android và các công cụ clipboard bạn dùng.</string>
+    <string name="reply_insert_warning">Chèn câu bên dưới vào ô nhập trống của ứng dụng này? BubbleB sẽ kiểm tra lại ô nhập và không tự gửi.</string>
+    <string name="reply_invalid_json">AI trả về sai định dạng ba gợi ý. Chỉ có thể sao chép văn bản; không thể chèn.</string>
+    <string name="reply_empty">Không có gợi ý hợp lệ. Hãy đóng bảng và thử lại sau.</string>
+    <string name="reply_copy_only">Chỉ sao chép: ô nhập có nháp, đã hết hạn hoặc không xác minh chắc chắn được mục tiêu.</string>
+    <string name="reply_copied">Đã sao chép.</string>
+    <string name="reply_copy_failed">Không sao chép được. Hãy thử lại hoặc đóng bảng.</string>
+    <string name="reply_inserted">Đã kiểm tra nội dung chèn trong ô nhập. Bạn tự bấm Gửi khi muốn.</string>
+    <string name="reply_insert_unverified">Chưa xác minh được kết quả chèn. Hãy kiểm tra ô nhập trước khi dán hay gửi; BubbleB không thử chèn lại.</string>
+    <string name="reply_insert_aborted">Không thể chèn an toàn. Bạn có thể sao chép và tự dán sau khi kiểm tra ô nhập.</string>
+</resources>

@@ -42,12 +42,13 @@
 **Gate:** no network call before Send, no leaking prompt/key via logs, loading cancel stops request, unit tests green.
 
 ## M4 — Reply + safe insertion (P0)
-- [ ] Define Reply JSON schema (three labeled texts); robust validation and text-only fallback.
-- [ ] Implement `InputSnapshot` and `TextInserter` reacquiring input right before action.
-- [ ] Default safe behavior: empty input + supported `ACTION_SET_TEXT`; nonempty drafts Copy only unless explicitly confirmed safe Replace.
-- [ ] Abort on app/window/focus/draft change, password/unknown target; no automated Send action.
-- [ ] Test mock input editor and real Zalo/Gmail where practical. Never assert universal compatibility.
+- [ ] Define Reply JSON schema (three labeled texts); robust validation and text-only fallback. — IMPLEMENTED (`ReplyJsonParser`, `ReplyPrompt`); tests NOT_RUN (thiếu Java Runtime).
+- [ ] Implement `InputSnapshot` and `TextInserter` reacquiring input right before action. — IMPLEMENTED (DTO định danh + đồng hồ monotonic; `GuardedTextInserter`, `AccessibilityTextInserter`); tests NOT_RUN; DEVICE_VERIFICATION_PENDING.
+- [ ] Default safe behavior: empty input + supported `ACTION_SET_TEXT`; nonempty drafts Copy only unless explicitly confirmed safe Replace. — IMPLEMENTED: chỉ ô trống, định danh ổn định và con trỏ xác định; không triển khai Replace. Copy có xác nhận thay clipboard; tests NOT_RUN.
+- [ ] Abort on app/window/focus/draft change, password/unknown target; no automated Send action. — IMPLEMENTED (metadata invalidation + kiểm tra lại ngay trước ghi); tests NOT_RUN; DEVICE_VERIFICATION_PENDING.
+- [ ] Test mock input editor and real Zalo/Gmail where practical. Never assert universal compatibility. — Đã viết tests fake editor, coordinator, parser, clipboard/password và Compose; NOT_RUN (thiếu JDK). Zalo/Gmail/OnePlus NOT_RUN.
 **Gate:** existing drafts preserved, stale targets never modified, Copy always works.
+**Trạng thái M4 (2026-11-16):** triển khai phần độc lập theo yêu cầu người dùng trước M3 (ADR-030); **chưa hoàn tất milestone**. M3 chưa có client/request/provider UI nên giao diện người dùng vẫn dừng ở preview, nút gửi vẫn vô hiệu; chưa thể nhận gợi ý AI hay chèn từ luồng thực tế. Có điểm nối `onReplySendConfirmed` → `onReplyResponse` cho M3; không giả lập thành công hoặc thêm gọi mạng. Build/unit/lint NOT_RUN: `Unable to locate a Java Runtime`. Audit và XML well-formedness PASS. Android <33 hoặc ô nhập không cung cấp `uniqueId` ổn định: Copy only (ADR-031). Các checkbox giữ nguyên chưa đánh dấu hoàn thành.
 
 ## M5 — Persona, app profiles + Share fallback (P0)
 - [ ] Room tables for AppProfile and Persona; defaults suggestions per app but let user customize.

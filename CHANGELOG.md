@@ -86,3 +86,23 @@
 **Audit:** PASS — `bash scripts/audit.sh`, exit 0; file mã nguồn lớn nhất 213 dòng, không phát hiện secret hardcode hay endpoint cleartext theo quy tắc audit.
 **Build/unit/lint:** NOT\_RUN — lệnh `./gradlew :app:assembleDebug :app:testDebugUnitTest :app:lint` dừng trước Gradle vì `Unable to locate a Java Runtime`; cần JDK 17 để chạy lại.
 **Giới hạn/bước tiếp:** chưa kiểm tra model bằng request xác thực; M2 chưa có luồng gọi API. Kết nối thực tế và xử lý kết quả thuộc M3.
+
+## M4 preview — Reply và chèn bảo thủ (0.2.2-m4-preview, 2026-11-16)
+
+**Trạng thái:** IMPLEMENTED phần độc lập; **chưa hoàn tất/không đánh dấu nghiệm thu M4**. Người dùng yêu cầu M4 trước khi M3 được triển khai; không mở rộng sang mạng hoặc provider settings (ADR-030).
+
+**Files/kiến trúc:**
+- Domain: `domain/reply/ReplyModels.kt` (labels/limits/prompt/contracts), `InsertionPolicy.kt`, `GuardedTextInserter.kt`; mở rộng `InputSnapshot`/`InputTarget`, `ScreenNode`, `ScreenTreeReader` để giữ định danh + monotonic timestamp và giới hạn draft.
+- Data/DI: `data/reply/ReplyJsonParser.kt`; thêm kotlinx serialization JSON cùng phiên bản catalog hiện có, binding parser trong `AppModule.kt`.
+- Presentation/UI: `ReplyRequest.kt`, `ReplySession.kt`, cập nhật `PanelState.kt`/`PanelCoordinator.kt`; mới `ReplyResultContent.kt`, `strings_reply.xml`, callbacks trong `PanelContent.kt`. Kết quả chỉ hiện dưới dạng Text; xác nhận Copy/chèn tách riêng, không tự Send.
+- Android: `AccessibilityTextInserter.kt` (node session ngắn), `AndroidReplyClipboard.kt` (sensitive flag), `InputNodePrivacy.kt`; cập nhật `AccessibilityScreenNode.kt`, `BubbleAccessibilityService.kt`, config event metadata. Không thêm quyền hay flag mở rộng cây cửa sổ.
+- Tests: thêm 8 file / 45 test declarations cho parser, snapshot, policy, fake editor/hậu điều kiện, session xác nhận, coordinator/stale request, Robolectric clipboard/password, Compose result. Cập nhật các tests cũ theo constructor/callback; **chưa chạy**.
+- Docs: README phản ánh source hiện có; TASKS, ARCHITECTURE, DEVELOPMENT §9, TEST_PLAN; ADR-030…032 trong DECISIONS. `versionCode=4`, `versionName=0.2.2-m4-preview`.
+
+**Hành vi:** JSON đúng ba nhãn và text giới hạn mới cho xét chèn. Sai schema/độ dài/nesting → Copy only, output rỗng không có thao tác. Chèn chỉ cho snapshot đầy đủ, ô trống, ID/window/package/cursor còn khớp, tuổi ≤120 giây, editable/visible/enabled/focused, không password và hỗ trợ SET_TEXT. Lấy lại mục tiêu trước ghi, kiểm tra hậu điều kiện; false/exception sau thử ghi → chưa xác minh, không retry/clipboard fallback. Nháp khác rỗng luôn Copy only. Đổi editor/window/app/khóa/revoke xóa phiên; request ID cũ bị bỏ.
+
+**Build/unit/lint:** NOT_RUN — đã gọi `./gradlew :app:assembleDebug :app:testDebugUnitTest :app:lint`, exit 1 trước Gradle: `Unable to locate a Java Runtime`. Cần JDK 17 và Android SDK theo DEVELOPMENT để chạy lại; không có bằng chứng biên dịch/tests PASS cho thay đổi này.
+**Device/visual QA:** NOT_RUN / DEVICE_VERIFICATION_PENDING — chưa kiểm thử fixture Android/Zalo/Gmail/OnePlus; Robolectric cũng chưa chạy. Không suy kết quả từ các test declarations.
+**Audit:** PASS — `bash scripts/audit.sh`, exit 0; 110 file code/config/script được kiểm tra, lớn nhất `BubbleAccessibilityService.kt` 237 dòng. Quy tắc audit không phát hiện secret hardcode/endpoint cleartext; XML mới/sửa parse được; `git diff --check` PASS.
+**Hạn chế/rủi ro:** UI hiện tại vẫn dừng ở preview, nút Send vô hiệu vì chưa có M3. M4 mới có điểm nối request/result, không có HTTP cancellation thật. Android <33 hoặc app thiếu stable uniqueId/cursor → Copy only; clipboard trong overlay/OEM và SET_TEXT chưa được chứng minh. Android không hỗ trợ compare-and-set nguyên tử với editor từ app khác; ưu tiên Copy khi không chắc chắn. Metadata editor có thể làm panel đóng sớm (fail closed).
+**Bước tiếp:** nối M3/provider/model đã chọn, chạy build/unit/lint, kiểm thử fixture và checklist thiết bị DEVELOPMENT §9 rồi mới xem xét nghiệm thu M4.

@@ -36,7 +36,10 @@ private class AccessibilityScreenNode(
     override val text: String? get() = info.text?.toString()
     override val contentDescription: String? get() = info.contentDescription?.toString()
     override val isShowingHintText: Boolean get() = info.isShowingHintText
-    override val isPassword: Boolean get() = info.isPassword
+    override val isPassword: Boolean get() = info.isSensitiveInput()
+    override val windowId: Int get() = info.windowId
+    override val uniqueId: String?
+        get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) info.uniqueId else null
     override val isVisibleToUser: Boolean get() = info.isVisibleToUser
     override val isEditable: Boolean get() = info.isEditable
     override val isFocused: Boolean get() = info.isFocused

@@ -8,6 +8,7 @@ import com.example.bubbleb.domain.model.AiAction
 import com.example.bubbleb.domain.model.CaptureFailure
 import com.example.bubbleb.domain.model.CaptureResult
 import com.example.bubbleb.domain.repository.ScreenCaptureSource
+import com.example.bubbleb.data.reply.ReplyJsonParser
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
@@ -44,7 +45,7 @@ class PanelCoordinatorTest {
     private val own = "com.example.bubbleb"
     private val profiles = FakeAppProfileRepository()
     private val bubble = BubbleCoordinator(FakeSettingsRepository(), profiles, own).apply { onServiceConnected() }
-    private val panel = PanelCoordinator(bubble, profiles, own)
+    private val panel = PanelCoordinator(bubble, profiles, own, ReplyJsonParser())
 
     @Test fun startsCollapsed_noCaptureWithoutTap() = runTest {
         val source = FakeCaptureSource(ScreenFixtures.chat())

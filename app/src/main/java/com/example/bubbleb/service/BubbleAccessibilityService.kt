@@ -18,6 +18,9 @@ import com.example.bubbleb.overlay.PanelOverlayController
 import com.example.bubbleb.presentation.BubbleCoordinator
 import com.example.bubbleb.presentation.PanelCoordinator
 import com.example.bubbleb.presentation.PanelState
+import com.example.bubbleb.presentation.ReplyOperation
+import com.example.bubbleb.domain.reply.TextInserter
+import com.example.bubbleb.domain.reply.ReplyClipboard
 import com.example.bubbleb.ui.overlay.PanelCallbacks
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -31,8 +34,8 @@ import kotlinx.coroutines.launch
 /**
  * Android adapter only (AGENTS.md §2): forwards connection, foreground-package and lock signals to
  * [BubbleCoordinator], renders bubble and panel windows, and performs a screen snapshot ONLY when
- * the user taps the bubble (via [PanelCoordinator]). It never calls the network, never logs screen
- * content and never persists state decisions itself.
+ * the user taps the bubble (via [PanelCoordinator]). Confirmed reply writes use short-lived Android
+ * adapters. It never calls the network, logs screen content or persists state decisions itself.
  */
 @AndroidEntryPoint
 class BubbleAccessibilityService : AccessibilityService() {
@@ -47,6 +50,8 @@ class BubbleAccessibilityService : AccessibilityService() {
     private var panel: PanelOverlayController? = null
     private var captureSource: ScreenCaptureSource? = null
     private var lastOrientation: Int? = null
+    private var textInserter: TextInserter? = null
+    private var replyClipboard: ReplyClipboard? = null
 
     override fun onServiceConnected() {
         super.onServiceConnected()
@@ -61,6 +66,8 @@ class BubbleAccessibilityService : AccessibilityService() {
         )
         overlay = controller
         captureSource = AccessibilityScreenCapture(this, clock)
+        textInserter = AccessibilityTextInserter(this)
+        replyClipboard = AndroidReplyClipboard(this)
         val panelController = PanelOverlayController(
             context = this,
             windowManager = getSystemService(WindowManager::class.java),
@@ -110,9 +117,19 @@ class BubbleAccessibilityService : AccessibilityService() {
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
-        if (event == null || event.eventType != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) return
-        // Minimal window metadata only: package name. Event text/content is never read.
-        refreshForeground(eventPackage = event.packageName?.toString())
+        if (event == null) return
+        // Minimal metadata only: no event text or source node is read.
+        when (event.eventType) {
+            AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED -> {
+                panelCoordinator.onWindowChanged(event.packageName?.toString(), event.windowId)
+                refreshForeground(event.packageName?.toString())
+            }
+            AccessibilityEvent.TYPE_VIEW_FOCUSED,
+            AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED,
+            AccessibilityEvent.TYPE_VIEW_TEXT_SELECTION_CHANGED -> {
+                if (panelCoordinator.state.value != PanelState.Collapsed) panelCoordinator.onEditorChanged(event.packageName?.toString())
+            }
+        }
     }
 
     /**
@@ -163,6 +180,11 @@ class BubbleAccessibilityService : AccessibilityService() {
         override fun onClose() = panelCoordinator.dismiss()
         override fun onAction(action: AiAction) = panelCoordinator.onActionSelected(action)
         override fun onPreviewCancel() = panelCoordinator.onPreviewBack()
+        override fun onReplyAction(operation: ReplyOperation, index: Int) = panelCoordinator.onReplyAction(operation, index)
+        override fun onReplyConfirm() {
+            scope?.launch { panelCoordinator.onReplyActionConfirm(textInserter, replyClipboard) }
+        }
+        override fun onReplyCancel() = panelCoordinator.onReplyActionCancel()
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
@@ -176,7 +198,7 @@ class BubbleAccessibilityService : AccessibilityService() {
     }
 
     override fun onInterrupt() {
-        // No LLM request exists in M2; a capture is short and bounded by its own time budget.
+        if (::panelCoordinator.isInitialized) panelCoordinator.dismiss()
     }
 
     override fun onUnbind(intent: Intent?): Boolean {
@@ -200,6 +222,8 @@ class BubbleAccessibilityService : AccessibilityService() {
         panel?.hide()
         panel = null
         captureSource = null
+        textInserter = null
+        replyClipboard = null
         overlay?.release()
         overlay = null
         lockMonitor?.stop()

@@ -89,3 +89,28 @@ Kiểm tra bằng `aapt2 dump permissions app/build/outputs/apk/debug/app-debug.
 - `android.permission.INTERNET` (khai báo trực tiếp, dùng từ M3).
 - `com.example.bubbleb.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`: quyền chữ ký nội bộ do `androidx.core` tự thêm để hỗ trợ đăng ký receiver không export trên API < 33; không phải quyền nhạy cảm và không hiển thị cho người dùng.
 - Không có `SYSTEM_ALERT_WINDOW`, `QUERY_ALL_PACKAGES`, quyền micro/danh bạ/bộ nhớ.
+
+## 9. M4 — triển khai độc lập, chưa nối M3 / chưa kiểm thử trên máy
+
+M4 hiện có parser/schema Reply, state kết quả và xác nhận Copy/chèn; M3 chưa có nên **không có đường người dùng nhận kết quả AI trong APK hiện tại**. Không thử bấm nút Send đang vô hiệu để nghiệm thu M4. Chưa có request xác thực đến provider, chưa chứng minh tương thích DeepSeek/Zalo/Gmail/OnePlus.
+
+Điểm nối cho M3:
+1. Sau khi người dùng chọn Reply, xem provider/nội dung/chỉ dẫn rồi xác nhận Send, resolve provider và gọi `onReplySendConfirmed(providerReady)`. Null = không tạo request, không gọi mạng.
+2. Tạo request Chat Completions bằng instruction xác định và screen text được bọc như dữ liệu không tin cậy riêng. Không đưa draft/target metadata vào prompt. Parser không phụ thuộc provider có hỗ trợ JSON Schema hay không.
+3. Chỉ chuyển assistant content hoàn chỉnh (không phải HTTP error body hoặc delta chưa hoàn tất) cùng request ID vào `onReplyResponse(id, content, SystemClock.elapsedRealtime())`. M3 phải hủy HTTP khi phiên bị đóng, không chỉ bỏ response cũ.
+4. Service đã nối callbacks xác nhận Copy/chèn; không mở Activity lấy focus khi đang chèn. Trước API 33 hoặc khi không có stable uniqueId/con trỏ: Copy only.
+
+Lệnh sau khi có JDK 17 và SDK theo mục 2:
+```bash
+./gradlew :app:assembleDebug :app:testDebugUnitTest :app:lint
+bash scripts/audit.sh
+```
+Trên máy hiện tại: Gradle **NOT_RUN** (`Unable to locate a Java Runtime`); XML well-formedness/audit **PASS**. Các tests mới chưa chạy: parser, snapshot metadata, insertion policy, fake editor với hậu điều kiện, phiên xác nhận, request ID, Compose và Robolectric clipboard/password. Không thay kết quả NOT_RUN thành PASS dựa trên đọc code.
+
+Checklist thiết bị **sau khi nối M3**, dùng dữ liệu giả và ghi model/OS/API:
+- Nhận đúng ba nhãn; JSON sai chỉ có Copy, không có Insert; response rỗng không có thao tác ghi.
+- Clipboard có dữ liệu giả trước đó: tap Copy chưa đổi clipboard; Hủy giữ nguyên; Xác nhận mới thay. Không hứa clipboard là kho riêng tư.
+- Ô nhập trống có stable uniqueId + selection 0/0 + hỗ trợ SET_TEXT: tap Insert chưa ghi; Hủy không ghi; Xác nhận lấy lại ô nhập, chèn đúng một lần và không tự gửi.
+- Có nháp (kể cả khoảng trắng), không có ID/cursor, password, đổi focus/window/app, gõ rồi xóa lại, hết 120 giây, khóa/tắt service/rút consent/thêm exclusion: không ghi vào mục tiêu cũ. Khi editor phát metadata thay đổi, panel có thể đóng ngay.
+- Action trả false, OEM ném lỗi hoặc hậu điều kiện không chứng minh được: không tự thử lại/paste/Copy, hiện trạng thái chưa xác minh nếu panel còn mở; người dùng tự kiểm tra editor.
+- Đóng panel hoặc ngắt service khi đang chờ: xóa phiên, bỏ response muộn; kiểm tra HTTP cancellation thật ở M3. Chạy trên fixture rồi Zalo/Gmail nơi hỗ trợ; ghi SUPPORTED/PARTIAL/UNSUPPORTED, không suy từ Robolectric ra máy thật.

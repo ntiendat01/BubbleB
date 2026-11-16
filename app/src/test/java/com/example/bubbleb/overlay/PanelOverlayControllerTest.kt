@@ -7,6 +7,7 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.bubbleb.domain.model.AiAction
 import com.example.bubbleb.presentation.PanelState
+import com.example.bubbleb.presentation.ReplyOperation
 import com.example.bubbleb.ui.overlay.PanelCallbacks
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.Assert.assertEquals
@@ -29,6 +30,9 @@ class PanelOverlayControllerTest {
         override fun onClose() = Unit
         override fun onAction(action: AiAction) = Unit
         override fun onPreviewCancel() = Unit
+        override fun onReplyAction(operation: ReplyOperation, index: Int) = Unit
+        override fun onReplyConfirm() = Unit
+        override fun onReplyCancel() = Unit
     }
     private val controller = PanelOverlayController(context, windowManager, state, callbacks)
 

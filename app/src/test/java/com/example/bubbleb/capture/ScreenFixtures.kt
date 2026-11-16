@@ -17,6 +17,8 @@ class FakeScreenNode(
     override val bounds: IntRect = IntRect(0, 0, 100, 10),
     override val selectionStart: Int = -1,
     override val selectionEnd: Int = -1,
+    override val windowId: Int = -1,
+    override val uniqueId: String? = null,
     val children: List<FakeScreenNode> = emptyList(),
     private val onChild: () -> Unit = {},
 ) : ScreenNode {

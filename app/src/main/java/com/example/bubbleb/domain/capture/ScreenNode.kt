@@ -20,6 +20,8 @@ interface ScreenNode {
     val selectionStart: Int
     val selectionEnd: Int
     val childCount: Int
+    val windowId: Int get() = -1
+    val uniqueId: String? get() = null
 
     /** May return null when the child vanished or is inaccessible. */
     fun child(index: Int): ScreenNode?
