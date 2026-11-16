@@ -1,3 +1,5 @@
+import java.util.Locale
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.compose.compiler)
@@ -5,6 +7,47 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
 }
+
+/**
+ * Debug-only provider defaults from the repo-root `.env` (ADR-029). Missing file => all empty.
+ * Values are never printed. Release builds always get empty strings.
+ */
+val envFile = rootProject.layout.projectDirectory.file(".env")
+val dotEnv: Map<String, String> = providers.fileContents(envFile).asText.orNull.orEmpty()
+    .lineSequence()
+    .map { it.trim() }
+    .filter { it.isNotEmpty() && !it.startsWith("#") && it.contains('=') }
+    .associate { line ->
+        val key = line.substringBefore('=').trim().removePrefix("export ").trim()
+        val value = line.substringAfter('=').trim().removeSurrounding("\"").removeSurrounding("'")
+        key to value
+    }
+
+fun envValue(key: String): String = dotEnv[key].orEmpty()
+
+fun httpsUrl(key: String): String = envValue(key).also {
+    if (it.isNotEmpty() && !it.lowercase(Locale.ROOT).startsWith("https://")) {
+        throw GradleException(".env: $key must be an https:// URL")
+    }
+}
+
+fun javaString(value: String): String = "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"") + "\""
+
+fun modelSelector(): String =
+    envValue("DEFAULT_MODEL").lowercase(Locale.ROOT).takeIf { it in setOf("deepseek", "qwen") }.orEmpty()
+
+val providerDefaultFields = listOf(
+    "LLM_BASE_URL" to { httpsUrl("LLM_BASE_URL") },
+    "LLM_API_KEY" to { envValue("LLM_API_KEY") },
+    "DEEPSEEK_MODEL" to { envValue("DEEPSEEK_MODEL") },
+    "QWEN_MODEL" to { envValue("QWEN_MODEL") },
+    "DEFAULT_MODEL" to { modelSelector() },
+    // Optional direct-provider overrides (commented out in .env.example).
+    "DEEPSEEK_API_KEY" to { envValue("DEEPSEEK_API_KEY") },
+    "DEEPSEEK_BASE_URL" to { httpsUrl("DEEPSEEK_BASE_URL") },
+    "QWEN_API_KEY" to { envValue("QWEN_API_KEY") },
+    "QWEN_BASE_URL" to { httpsUrl("QWEN_BASE_URL") },
+)
 
 android {
     namespace = "com.example.bubbleb"
@@ -20,7 +63,12 @@ android {
     }
 
     buildTypes {
+        debug {
+            providerDefaultFields.forEach { (name, value) -> buildConfigField("String", name, javaString(value())) }
+        }
         release {
+            // Never ship .env values: release gets empty strings (in-app Keystore entry from M3).
+            providerDefaultFields.forEach { (name, _) -> buildConfigField("String", name, "\"\"") }
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
@@ -33,7 +81,7 @@ android {
 
     buildFeatures {
         compose = true
-        buildConfig = false
+        buildConfig = true
         aidl = false
         shaders = false
     }

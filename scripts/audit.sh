@@ -32,6 +32,13 @@ if echo "$files" | xargs grep -nEi "$secret_re" 2>/dev/null; then
 else
   echo "No hardcoded secrets found"
 fi
+# .env holds real keys locally; only the placeholder template may be tracked, with empty *_API_KEY.
+if [ -f .env.example ] && grep -nE '^[[:space:]]*[A-Z0-9_]*API_KEY[[:space:]]*=[[:space:]]*[^[:space:]#]' .env.example; then
+  echo "VIOLATION: .env.example contains a non-empty API key"; status=1
+fi
+if git ls-files | grep -E '(^|/)\.env(\..*)?$' | grep -vE '(^|/)\.env\.example$'; then
+  echo "VIOLATION: a real .env file is tracked"; status=1
+fi
 for f in local.properties secrets.properties; do
   if git ls-files --error-unmatch "$f" >/dev/null 2>&1; then echo "VIOLATION: $f is tracked"; status=1; fi
 done

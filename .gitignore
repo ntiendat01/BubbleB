@@ -37,4 +37,8 @@ google-services.json
 # BubbleB: never commit secrets or machine-local SDK paths
 secrets.properties
 *.env
+# Local provider config (real API keys). Only the placeholder template is tracked.
+.env
+.env.*
+!.env.example
 /app/release/

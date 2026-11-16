@@ -41,6 +41,7 @@ Require consent checkbox/tap after scroll/read; persist only notice version+time
 - Generate/retrieve AES key in Android Keystore; encrypt API key using AES-GCM with random 12-byte IV per write; persist `{version, IV, ciphertext}` in app-private encrypted file or private preferences. Never log key or decrypted bytes.
 - If device lock/reset invalidates a key, clear corrupt ciphertext and prompt re-entry; never silently revert to plaintext.
 - No embedded developer key or shared key in APK; BYOK personal distribution. For public release introduce authenticated backend with rate limits instead.
+- **Exception (ADR-029, debug only):** a developer may put their own key in the gitignored repo-root `.env`; Gradle copies it into `BuildConfig` for the `debug` build type only (release gets empty strings). Keys in a debug APK are extractable: never share such an APK. Only `.env.example` (empty keys) is committed; `scripts/audit.sh` fails if `.env` is tracked or the template contains a key. In-app Keystore entry (M3) overrides `.env` values and remains the release path.
 - Reject plaintext HTTP providers. TLS certificate validation must not be disabled. No trust-all certificate, no debug MITM in release.
 
 ## 7. Prompt injection / output handling

@@ -154,6 +154,9 @@ State data: action, provider label, context preview sanitized, `requestId`, inpu
 - `INTERNET` must be explicitly declared in manifest (normal permission; no runtime popup).
 - Do not request `SYSTEM_ALERT_WINDOW` for this design; no separate foreground service until empirically necessary and separately scoped.
 
+## 8a. Provider defaults for development (ADR-029)
+`app/build.gradle.kts` reads the optional repo-root `.env` and generates `BuildConfig` string fields (`LLM_BASE_URL`, `LLM_API_KEY`, `DEEPSEEK_MODEL`, `QWEN_MODEL`, `DEFAULT_MODEL`, optional `DEEPSEEK_*`/`QWEN_*` direct endpoints) for **debug only**; release fields are empty. `data/config/ProviderDefaults` exposes them read-only. From M3 the provider repository resolves configuration as: user-entered (Keystore) → `.env` debug defaults → unconfigured. Default route is one OpenAI-compatible gateway (CoreWeave Serverless Inference) serving DeepSeek and Qwen models.
+
 ## 9. Build gates
 - Version pinning via Gradle version catalog (if desired) and stable verified Compose/Kotlin/AGP/Hilt compatibility; record exact versions in build README.
 - CI: format/lint, unit tests, build Debug. Nightly instrumented UI tests only if device available; manually run OnePlus matrix.

@@ -88,6 +88,13 @@ Panel dùng cửa sổ `TYPE_ACCESSIBILITY_OVERLAY` thứ hai (`BubbleB Panel`, 
 ## ADR-028: Sửa lỗi "chạm bong bóng không có gì" (0.2.1-m2) — accepted, needs device proof
 Báo cáo từ máy thật: bong bóng hiện nhưng chạm không có phản hồi. Nguyên nhân đã tái hiện trên Robolectric: `Surface` của Material3 gắn `pointerInput` rỗng nên Compose nuốt mọi chạm; `OnTouchListener` đặt trên `ComposeView` không bao giờ nhận được sự kiện (cả chạm lẫn kéo bắt đầu trên bong bóng). Test M1 cũ chạm ngoài vùng 48 px nên không phát hiện. Sửa: cửa sổ bong bóng có gốc là `TouchInterceptLayout` (chặn chạm khỏi con Compose) và listener đặt trên gốc; tree owners đặt trên view gốc. Phòng ngừa thêm (giả thuyết, chưa xác nhận trên máy): bỏ qua sự kiện foreground mang package của chính BubbleB khi Activity của BubbleB không hiển thị (đó là cửa sổ overlay của mình); capture thử lại tối đa 3 lần/120 ms nếu root là BubbleB hoặc null; mọi lỗi (kể cả exception, không thêm được cửa sổ panel) đều hiện panel có lý do hoặc Toast; log stage `BB/Service`, `BB/Overlay`, `BB/Panel` (không nội dung).
 
+## ADR-029: `.env` → BuildConfig chỉ cho bản DEBUG — accepted (2026-11-16, lựa chọn có chủ đích của chủ dự án)
+Theo yêu cầu của chủ dự án, file `.env` ở gốc repo (gitignore; chỉ commit `.env.example` với key rỗng) được Gradle đọc lúc build và đưa vào `BuildConfig` **chỉ của build type `debug`**; `release` luôn nhận chuỗi rỗng. Thiếu `.env` không làm hỏng build; base URL không phải `https://` làm build lỗi. Tuyến mặc định là gateway OpenAI-compatible **CoreWeave Serverless Inference** (`LLM_BASE_URL`, `LLM_API_KEY` = key CoreWeave Forge) phục vụ cả model DeepSeek và Qwen (`DEEPSEEK_MODEL`, `QWEN_MODEL`, `DEFAULT_MODEL`); biến gọi thẳng DeepSeek/Qwen là tùy chọn (bị comment trong file mẫu). `ProviderDefaults.fromBuildConfig()` chỉ đọc giá trị, không gọi mạng, `toString()` che key.
+Hệ quả và giới hạn (đã chấp nhận):
+- Key trong APK debug **trích xuất được** (giải nén APK/đọc dex). Đây là ngoại lệ có giới hạn của SECURITY_PRIVACY §6 ("No embedded developer key"), chỉ cho máy dev/test cá nhân; không phân phối APK debug có key.
+- Con đường cho bản phát hành vẫn là nhập key trong app, mã hóa bằng Android Keystore (M3). Khi M3 có cấu hình trong app, giá trị người dùng nhập **phải ghi đè** giá trị `.env`.
+- Không log/hiển thị key; audit (`scripts/audit.sh`) chặn `.env.example` có key khác rỗng và chặn commit `.env` thật.
+
 ## Open device-validation questions
 - Accessibility service overlay remains usable across OxygenOS 16 lock/unlock, memory pressure and background cleanup? Track actual behavior; do not assume.
 - Do Zalo/Gmail expose text and writable input nodes reliably on this OS/build? Per-app observations only; fail gracefully otherwise.
