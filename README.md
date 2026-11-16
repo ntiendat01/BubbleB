@@ -28,6 +28,8 @@ Phiên bản toolchain thực tế, cách thiết lập SDK và lệnh build/tes
 
 **Cấu hình AI cho bản debug (tùy chọn):** `cp .env.example .env` rồi điền `LLM_API_KEY` (key CoreWeave Forge cho gateway `https://api.inference.wandb.ai/v1`, gọi được model DeepSeek và Qwen). Không commit `.env`. Giá trị chỉ vào bản debug; key trong APK debug có thể bị trích xuất (ADR-029). Bản release dùng key nhập trong app (M3).
 
+Model mặc định đã chọn: `deepseek-ai/DeepSeek-V4.1-Flash-1017` tại gateway trên (`DEEPSEEK_MODEL`, `DEFAULT_MODEL=deepseek`). Nếu đã có `.env`, cập nhật model trong file đó; thay đổi `.env.example` không tự cập nhật `.env`. M2 hiện chưa gọi API; phần gọi AI thuộc M3.
+
 ## Giao task cho agent
 
 > Đọc `AGENTS.md`, `docs/PRODUCT_SPEC.md`, `docs/ARCHITECTURE.md`, `docs/SECURITY_PRIVACY.md` và `docs/TASKS.md`. Triển khai **M0 và M1 trước**, không tự mở rộng scope; mỗi milestone báo file thay đổi, lệnh build/test, kết quả, hạn chế và bằng chứng kiểm thử. Không file code nào >500 dòng. Không hardcode API key. Không thực hiện thao tác tự động gửi tin nhắn. Nếu chưa xác minh được trên máy OnePlus, đánh dấu `DEVICE_VERIFICATION_PENDING`, không tuyên bố đã hoạt động.

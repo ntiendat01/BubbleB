@@ -38,6 +38,7 @@ Danh sách phiên bản nằm ở `gradle/libs.versions.toml`.
    ```
    - `.env` bị gitignore; chỉ `.env.example` (key rỗng) được commit. `scripts/audit.sh` báo lỗi nếu `.env` bị track hoặc file mẫu có key.
    - Giá trị chỉ vào `BuildConfig` của bản **debug**; bản release luôn rỗng. Thiếu `.env` vẫn build được; base URL không phải HTTPS → build lỗi.
+   - Cấu hình mặc định đã chọn: `LLM_BASE_URL=https://api.inference.wandb.ai/v1`, `DEEPSEEK_MODEL=deepseek-ai/DeepSeek-V4.1-Flash-1017`, `DEFAULT_MODEL=deepseek`. Nếu `.env` đã tồn tại, cập nhật các biến này trong file đó và build lại APK debug.
    - Key trong APK debug trích xuất được: không chia sẻ APK debug có key.
    - M2 chưa gọi mạng; giá trị chỉ được đọc sẵn (`ProviderDefaults`) cho M3.
 
