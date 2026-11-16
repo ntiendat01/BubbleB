@@ -2,20 +2,12 @@ package com.example.bubbleb.overlay
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.graphics.PixelFormat
-import android.util.Log
-import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
 import android.view.WindowManager
-import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.lifecycle.setViewTreeLifecycleOwner
-import androidx.lifecycle.setViewTreeViewModelStoreOwner
-import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.example.bubbleb.domain.BubbleDefaults
 import com.example.bubbleb.domain.layout.BubbleLayoutCalculator
 import com.example.bubbleb.domain.model.BubblePosition
@@ -35,14 +27,12 @@ class OverlayController(
     private val onTap: () -> Unit,
     private val onPositionCommitted: (BubblePosition) -> Unit,
 ) {
-    private class Host(val view: ComposeView, val owner: OverlayLifecycleOwner, val params: WindowManager.LayoutParams)
-
     private val density = context.resources.displayMetrics.density
     private val sizePx = (BubbleDefaults.SIZE_DP * density).roundToInt()
     private val calculator = BubbleLayoutCalculator(sizePx, (BubbleDefaults.EDGE_MARGIN_DP * density).roundToInt())
     private val safeArea = SafeAreaProvider(windowManager, density)
     private val dragTracker = BubbleDragTracker(ViewConfiguration.get(context).scaledTouchSlop.toFloat())
-    private var host: Host? = null
+    private var host: OverlayWindow? = null
     private var position: BubblePosition? = null
 
     val isAttached: Boolean get() = host != null
@@ -66,77 +56,47 @@ class OverlayController(
         position = null
     }
 
-    private fun attach(): Host? {
-        val owner = OverlayLifecycleOwner()
-        val view = ComposeView(context)
-        view.setViewTreeLifecycleOwner(owner)
-        view.setViewTreeViewModelStoreOwner(owner)
-        view.setViewTreeSavedStateRegistryOwner(owner)
-        view.setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
-        view.setContent { BubbleBTheme { BubbleContent(onActivate = onTap) } }
-        val params = layoutParams()
-        val newHost = Host(view, owner, params)
-        installTouchHandling(newHost)
-        installInsetsListener(newHost)
-        owner.createAndResume()
-        return try {
-            windowManager.addView(view, params)
-            host = newHost
-            log("overlay_attached")
-            newHost
-        } catch (e: WindowManager.BadTokenException) {
-            failAttach(newHost, e)
-        } catch (e: IllegalStateException) {
-            failAttach(newHost, e)
-        } catch (e: SecurityException) {
-            failAttach(newHost, e)
-        }
-    }
-
-    private fun failAttach(failed: Host, error: Exception): Host? {
-        log("overlay_attach_failed:${error.javaClass.simpleName}")
-        failed.view.disposeComposition()
-        failed.owner.destroy()
-        return null
+    private fun attach(): OverlayWindow? {
+        val params = OverlayWindows.params(sizePx, sizePx, WINDOW_TITLE)
+        val window = OverlayWindows.attach(
+            context = context,
+            windowManager = windowManager,
+            params = params,
+            configure = { w ->
+                installTouchHandling(w)
+                installInsetsListener(w)
+            },
+        ) { BubbleBTheme { BubbleContent(onActivate = onTap) } } ?: return null
+        host = window
+        return window
     }
 
     private fun detach() {
         val current = host ?: return
         host = null
         dragTracker.onCancel()
-        try {
-            windowManager.removeViewImmediate(current.view)
-        } catch (e: IllegalArgumentException) {
-            log("overlay_remove_not_attached")
-        }
-        current.view.disposeComposition()
-        current.owner.destroy()
-        log("overlay_detached")
+        OverlayWindows.detach(windowManager, current)
     }
 
-    private fun place(target: Host, pos: BubblePosition) {
+    private fun place(target: OverlayWindow, pos: BubblePosition) {
         val point = calculator.resolve(pos, safeArea.currentSafeArea())
         move(target, point)
     }
 
-    private fun move(target: Host, point: IntPoint) {
+    private fun move(target: OverlayWindow, point: IntPoint) {
         if (target.params.x == point.x && target.params.y == point.y) return
         target.params.x = point.x
         target.params.y = point.y
-        try {
-            windowManager.updateViewLayout(target.view, target.params)
-        } catch (e: IllegalArgumentException) {
-            log("overlay_update_not_attached")
-        }
+        OverlayWindows.update(windowManager, target)
     }
 
     @SuppressLint("ClickableViewAccessibility") // performClick() is invoked on tap below.
-    private fun installTouchHandling(target: Host) {
+    private fun installTouchHandling(target: OverlayWindow) {
         target.view.setOnClickListener { onTap() }
         target.view.setOnTouchListener { v, event -> handleTouch(target, v, event) }
     }
 
-    private fun handleTouch(target: Host, view: View, event: MotionEvent): Boolean {
+    private fun handleTouch(target: OverlayWindow, view: View, event: MotionEvent): Boolean {
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN ->
                 dragTracker.onDown(event.rawX, event.rawY, IntPoint(target.params.x, target.params.y))
@@ -156,7 +116,7 @@ class OverlayController(
         return true
     }
 
-    private fun commitDrag(target: Host, release: IntPoint) {
+    private fun commitDrag(target: OverlayWindow, release: IntPoint) {
         val area = safeArea.currentSafeArea()
         val snapped = calculator.snap(calculator.clamp(release, area), area)
         position = snapped
@@ -164,7 +124,7 @@ class OverlayController(
         onPositionCommitted(snapped)
     }
 
-    private fun installInsetsListener(target: Host) {
+    private fun installInsetsListener(target: OverlayWindow) {
         ViewCompat.setOnApplyWindowInsetsListener(target.view) { _, insets ->
             val ime = insets.getInsets(WindowInsetsCompat.Type.ime()).bottom
             if (ime != safeArea.observedImeBottomPx) {
@@ -175,26 +135,7 @@ class OverlayController(
         }
     }
 
-    private fun layoutParams() = WindowManager.LayoutParams(
-        sizePx,
-        sizePx,
-        WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
-        WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-            WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
-            WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
-        PixelFormat.TRANSLUCENT,
-    ).apply {
-        gravity = Gravity.TOP or Gravity.START
-        title = WINDOW_TITLE
-    }
-
-    /** Stage-only logging: never logs package names, screen text or positions tied to content. */
-    private fun log(stage: String) {
-        Log.i(TAG, stage)
-    }
-
     private companion object {
-        const val TAG = "BB/Overlay"
         const val WINDOW_TITLE = "BubbleB"
     }
 }

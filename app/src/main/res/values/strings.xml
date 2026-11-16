@@ -26,7 +26,7 @@
     <string name="bubble_toggle">Bật bong bóng</string>
     <string name="bubble_toggle_disabled_hint">Chỉ bật được khi dịch vụ Trợ năng đã kết nối và bạn đã đồng ý.</string>
     <string name="open_provider_settings">Nhà cung cấp AI</string>
-    <string name="milestone_note">Bản thử nghiệm M1: bong bóng chưa đọc nội dung màn hình và chưa gửi gì đến AI.</string>
+    <string name="milestone_note">Bản thử nghiệm M2: chạm bong bóng để đọc màn hình một lần và xem trước nội dung đã che. Chưa có kết nối AI; không có gì được gửi đi.</string>
 
     <!-- Provider settings placeholder (M0) -->
     <string name="provider_title">Nhà cung cấp AI</string>
@@ -37,5 +37,30 @@
 
     <!-- Overlay -->
     <string name="bubble_content_description">Mở BubbleB</string>
-    <string name="bubble_tap_placeholder">BubbleB M1: chưa đọc màn hình ở bản thử nghiệm này.</string>
+
+    <!-- Panel (M2) -->
+    <string name="panel_header">BubbleB · %1$s</string>
+    <string name="panel_close">Đóng bảng BubbleB</string>
+    <string name="panel_capturing">Đang đọc màn hình…</string>
+    <string name="panel_read_count">Đã đọc %1$d ký tự</string>
+    <string name="panel_truncated">Nội dung dài đã được rút gọn theo giới hạn.</string>
+    <string name="action_reply">Trả lời</string>
+    <string name="action_summarize">Tóm tắt</string>
+    <string name="action_explain">Giải thích</string>
+    <string name="action_translate">Dịch</string>
+    <string name="action_reply_unavailable">Trả lời chỉ dùng được khi có ô nhập và nội dung hội thoại.</string>
+    <string name="review_title">Kiểm tra nội dung gửi đến AI</string>
+    <string name="review_provider_none">Nhà cung cấp: chưa cấu hình</string>
+    <string name="review_count">%1$d ký tự</string>
+    <string name="review_redacted">Đã che dữ liệu nhạy cảm</string>
+    <string name="review_mostly_redacted">Phần lớn nội dung đã bị che; không nên gửi.</string>
+    <string name="review_empty">Không có nội dung để gửi.</string>
+    <string name="review_send_disabled">Chưa cấu hình nhà cung cấp AI. Bản M2 không gửi gì ra mạng.</string>
+    <string name="cancel">Hủy</string>
+    <string name="send_to_ai">Gửi đến AI</string>
+    <string name="error_no_permission">Chưa bật quyền Trợ năng</string>
+    <string name="error_no_content">Không đọc được nội dung màn hình này</string>
+    <string name="error_share_hint">Bạn có thể dùng Chia sẻ đoạn văn bản từ ứng dụng nguồn (có ở bản sau).</string>
+    <string name="error_excluded">Ứng dụng này được loại trừ để bảo vệ quyền riêng tư</string>
+    <string name="error_sensitive">Màn hình có trường mật khẩu hoặc dữ liệu nhạy cảm; BubbleB không đọc.</string>
 </resources>

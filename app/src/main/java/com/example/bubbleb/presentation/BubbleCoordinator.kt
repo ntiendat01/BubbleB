@@ -32,6 +32,9 @@ class BubbleCoordinator @Inject constructor(
     private val foregroundPackage = MutableStateFlow<String?>(null)
     private val screenLocked = MutableStateFlow(false)
 
+    /** Latest lock state as observed by the service (policy, not a guarantee). */
+    val isScreenLocked: StateFlow<Boolean> = screenLocked.asStateFlow()
+
     /** True only between `onServiceConnected` and unbind/destroy of the real service. */
     val serviceConnected: StateFlow<Boolean> = serviceConnectedState.asStateFlow()
 

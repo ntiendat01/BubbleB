@@ -51,7 +51,7 @@ Luôn ẩn trên: chính app, SystemUI (màn hình khóa/thanh thông báo), h�
 ## ADR-017: Điều kiện hiện bong bóng — accepted (M1)
 Bong bóng chỉ hiện khi: service thực sự connected **và** người dùng đã đồng ý thông báo phiên bản hiện tại **và** công tắc "Bật bong bóng" bật **và** không khóa màn hình **và** app tiền cảnh không bị loại trừ. Công tắc mặc định bật, nhưng vì cần cả đồng ý + bật Trợ năng thủ công nên không có bong bóng nào xuất hiện ngoài ý muốn. Rút lại đồng ý → bong bóng ẩn ngay.
 
-## ADR-018: Chạm bong bóng ở M1 không đọc màn hình — accepted (M1)
+## ADR-018: Chạm bong bóng ở M1 không đọc màn hình — superseded by ADR-022 (M2)
 M1 là proof-of-concept: chạm chỉ hiện Toast thông báo; không capture, không mở panel, không gọi mạng (capture thuộc M2). `onInterrupt` không có việc gì để hủy ở M1; từ M2 sẽ hủy job capture/LLM tại đây.
 
 ## ADR-019: Kéo thả dùng toạ độ raw qua `View.OnTouchListener` — accepted (M1)
@@ -66,6 +66,24 @@ Theo yêu cầu của chủ dự án, tên sản phẩm "ContextBubble" đổi t
 - Lớp: `ContextBubbleApp` → `BubbleBApp`, `ContextBubbleDatabase` → `BubbleBDatabase`, `ContextBubbleTheme` → `BubbleBTheme`, theme XML `Theme.BubbleB`.
 - File dữ liệu: Room `bubbleb.db`, DataStore `bubbleb_settings`; tiêu đề cửa sổ overlay `BubbleB`; log tag `BB/…`.
 - Tên cũ chỉ còn xuất hiện trong ADR này và mục đổi tên của `CHANGELOG.md` để truy vết.
+
+## ADR-022: Luồng chạm → capture → panel ở M2 — accepted (M2)
+Chạm bong bóng (chỉ thao tác chạm rõ ràng của người dùng) gọi `PanelCoordinator.onBubbleTapped` → **một** snapshot `rootInActiveWindow` có giới hạn. Kiểm tra trước (`CapturePreflight`: khóa màn hình, package rỗng, app của chính BubbleB, danh sách hệ thống/nhạy cảm/người dùng loại trừ) chạy **trước khi đọc bất kỳ text nào**. Chạm lặp lại khi đang capture/đang mở panel bị bỏ qua; kết quả về muộn sau khi đã đóng panel bị bỏ (requestId). `ScreenContext` thô chỉ nằm trong bộ nhớ của coordinator, bị xoá khi đóng, đổi app, khóa màn hình, xoay màn hình, service ngắt hoặc chính sách ẩn bong bóng. Không lưu, không log nội dung.
+
+## ADR-023: Gặp trường mật khẩu → chặn cả màn hình — accepted (M2)
+Nếu traversal gặp node `isPassword`, toàn bộ capture trả `SENSITIVE_SCREEN` (thay vì chỉ bỏ node đó), vì màn hình đăng nhập thường chứa thông tin nhạy cảm khác. Đây là lựa chọn fail-closed; có thể nới ở milestone sau nếu người dùng yêu cầu.
+
+## ADR-024: Nội dung nháp trong ô nhập không vào payload — accepted (M2)
+Text đang gõ trong ô nhập (role INPUT) được giữ trong `InputSnapshot` chỉ để xác định khả năng "Trả lời" (và cho M4 chèn an toàn), nhưng **không** đưa vào preview/payload gửi AI. Hint text không bị coi là nháp. `contentDescription` chỉ dùng khi node không có text, và cũng qua redaction.
+
+## ADR-025: Nút "Gửi đến AI" bị vô hiệu ở M2 — accepted (M2)
+M2 chưa có LLM/provider (M3). Panel xem trước luôn hiện `Chưa cấu hình nhà cung cấp AI` và nút gửi bị disable; không có đường code mạng nào trong `src/main` (kiểm bằng `NoNetworkAuditTest`). Nút cũng bị disable khi preview gần như toàn bộ đã bị che (< 20 ký tự thật). `Hủy` quay về danh sách hành động không capture lại; nút X đóng và xoá snapshot. Do cửa sổ panel không focusable nên phím Back hệ thống không tới được panel — luôn có nút đóng rõ ràng. Chọn ngôn ngữ đích cho "Dịch" để M3.
+
+## ADR-026: Giới hạn capture và redaction — accepted (M2)
+500 node, độ sâu 20, 300 ms (đồng hồ `elapsedRealtime`), 500 code point mỗi node, 6000 code point tổng; payload Reply tối đa 3000. Tính theo Unicode code point, không cắt đôi cặp surrogate; bỏ ký tự điều khiển/bidi override. Redaction cục bộ theo thứ tự token → credential → email → thẻ (Luhn 13–19 số) → OTP (cần từ khoá neo VI/EN) → SĐT (+84/0…); cố ý không che số chung chung (ngày, tiền, giờ, số phòng) để tránh che nhầm. Redaction là best-effort; người dùng vẫn phải xem lại.
+
+## ADR-027: Panel là cửa sổ overlay riêng — accepted, needs device proof (M2)
+Panel dùng cửa sổ `TYPE_ACCESSIBILITY_OVERLAY` thứ hai (`BubbleB Panel`, ~90% chiều rộng vùng an toàn, cao tối đa 70%, cuộn được, không focusable, không có ô nhập). Bong bóng và panel loại trừ nhau. Code WindowManager dùng chung qua `OverlayWindows`. Tên app lấy từ `PackageManager`; trên Android 11+ nếu không thấy package (package visibility) thì hiển thị package name — cần kiểm tra trên OnePlus.
 
 ## Open device-validation questions
 - Accessibility service overlay remains usable across OxygenOS 16 lock/unlock, memory pressure and background cleanup? Track actual behavior; do not assume.

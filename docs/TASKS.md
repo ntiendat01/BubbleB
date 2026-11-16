@@ -23,12 +23,13 @@
 **Gate status (M1):** JVM: 20 lần bật/tắt service (coordinator) PASS, 20 chu kỳ attach/detach overlay (Robolectric) PASS, không nhân đôi cửa sổ PASS, service ngắt → ẩn bong bóng PASS. Device/ADB gate: PENDING (`DEVICE_VERIFICATION_PENDING`).
 
 ## M2 — Screen snapshot + privacy guard (P0)
-- [ ] Implement bounded Accessibility tree traversal and immutable structured DTOs.
-- [ ] Collect only on tap; filter password/invisible/own/excluded/unknown package and sensitive window states.
-- [ ] Implement redaction rules with unit tests and redacted preview; no prompt logging.
-- [ ] Add review/consent flow (even before LLM exists); ensure no network request on tap.
-- [ ] Add mock screen-reader fixtures for chat, long doc, empty tree, missing focused input, protected view and complex hierarchy.
+- [ ] Implement bounded Accessibility tree traversal and immutable structured DTOs. — IMPLEMENTED; unit PASS (`ScreenTreeReaderTest`); Android adapter (`AccessibilityScreenCapture`) DEVICE_VERIFICATION_PENDING
+- [ ] Collect only on tap; filter password/invisible/own/excluded/unknown package and sensitive window states. — IMPLEMENTED; unit PASS (`CapturePreflightTest`, `ScreenTreeReaderTest`, `PanelCoordinatorTest`); DEVICE_VERIFICATION_PENDING
+- [ ] Implement redaction rules with unit tests and redacted preview; no prompt logging. — IMPLEMENTED; unit PASS (`RedactionTest`, `PayloadPreviewBuilderTest`, `NoNetworkAuditTest` kiểm tra không log trong code capture/privacy)
+- [ ] Add review/consent flow (even before LLM exists); ensure no network request on tap. — IMPLEMENTED; unit/Robolectric PASS (`PanelCoordinatorTest`, `PanelContentTest`, `PanelOverlayControllerTest`, `NoNetworkAuditTest`); nút `Gửi đến AI` luôn bị vô hiệu ở M2 (chưa có provider); DEVICE_VERIFICATION_PENDING
+- [ ] Add mock screen-reader fixtures for chat, long doc, empty tree, missing focused input, protected view and complex hierarchy. — IMPLEMENTED (`ScreenFixtures`: chat, tài liệu dài, cây rỗng, không có ô nhập focus, view được bảo vệ, cây rộng >500 node, chuỗi sâu >20, trường mật khẩu, đồng hồ giả cho time budget); PASS trên JVM. Fixture **trên thiết bị** (app mẫu TextView/EditText) NOT_RUN
 **Gate:** sensitive data not shown in preview where recognizably redactable; empty/excluded states fail closed; 500-node/depth/time caps enforced.
+**Gate status (M2):** JVM PASS — email/SĐT VN/thẻ Luhn/OTP/token/credential bị che trong preview; không che nhầm ngày/số tiền/giờ/số phòng mẫu; cây rỗng/protected/null root → `Không đọc được…`; app loại trừ/app của chính BubbleB/khóa màn hình → chặn **trước khi đọc text**; mật khẩu → chặn cả màn hình; giới hạn 500 node / độ sâu 20 / 300 ms / 500 ký tự mỗi node / 6000 ký tự tổng (Reply 3000) đều có test. Device gate: PENDING (`DEVICE_VERIFICATION_PENDING`). **Gate thiết bị M1 cũng vẫn PENDING** — M2 chưa được chạy trên emulator/OnePlus.
 
 ## M3 — LLM integration + 3 read-only actions (P0)
 - [ ] Implement HTTPS provider URL/credential handling with encrypted secret store, no plaintext key in DataStore.

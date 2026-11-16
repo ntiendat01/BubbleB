@@ -62,7 +62,17 @@ scripts/m1_device_check.sh     # 20 lần bật/tắt service + 20 chu kỳ atta
 ```
 Script chỉ là test harness (dùng `adb shell settings put secure ...`), không phải hướng dẫn cho người dùng vượt qua "restricted settings". Kiểm tra thủ công thêm: kéo bong bóng ra giữa rồi thả (phải hút về cạnh gần hơn), xoay màn hình, mở bàn phím, khóa/mở khóa, mở app bị loại trừ (ví dụ Google Authenticator), tắt Trợ năng trong Cài đặt (bong bóng phải biến mất). Ghi kết quả `SUPPORTED/PARTIAL/UNSUPPORTED` kèm ảnh chụp **dữ liệu giả**.
 
-## 7. Quyền trong APK đã merge
+## 7. Kiểm tra M2 trên emulator/thiết bị (khi có) — chưa chạy
+Chưa có script tự động cho M2 (cần chạm vào app thật). Checklist thủ công, **chỉ dùng dữ liệu giả**:
+1. Mở một app chat/ghi chú có text giả (ví dụ tin nhắn chứa `0912 345 678`, `test@example.com`, `Mã xác thực: 123456`), chạm bong bóng → panel `BubbleB · {app}` hiện `Đã đọc N ký tự`.
+2. Chọn `Tóm tắt` → `Kiểm tra nội dung gửi đến AI`: SĐT/email/OTP phải là `[REDACTED_…]`, có dòng `Đã che dữ liệu nhạy cảm`, nút `Gửi đến AI` bị vô hiệu.
+3. Có ô nhập đang focus → `Trả lời` bật; không có → `Trả lời` mờ. Nội dung nháp không xuất hiện trong preview.
+4. Màn hình đăng nhập có ô mật khẩu → thông báo chặn. App bị loại trừ (Google Authenticator…) → bong bóng ẩn / panel chặn.
+5. Mở panel rồi chuyển app, khóa màn hình, xoay màn hình → panel phải đóng.
+6. `adb logcat -s BB/Service BB/Overlay` chỉ có stage, không có text màn hình hay package name. Không có request mạng (ví dụ kiểm bằng Network Inspector/`adb shell dumpsys netstats`).
+Ghi kết quả `SUPPORTED/PARTIAL/UNSUPPORTED` từng app (Zalo, Gmail, Chrome).
+
+## 8. Quyền trong APK đã merge
 Kiểm tra bằng `aapt2 dump permissions app/build/outputs/apk/debug/app-debug.apk`:
 - `android.permission.INTERNET` (khai báo trực tiếp, dùng từ M3).
 - `com.example.bubbleb.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`: quyền chữ ký nội bộ do `androidx.core` tự thêm để hỗ trợ đăng ký receiver không export trên API < 33; không phải quyền nhạy cảm và không hiển thị cho người dùng.

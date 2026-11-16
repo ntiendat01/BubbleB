@@ -42,3 +42,21 @@
 **Modified files:** toàn bộ package `com.example.contextbubble` → `com.example.bubbleb` (main + test, chuyển thư mục), `BubbleBApp.kt`, `BubbleBDatabase.kt`, `Theme.kt` (`BubbleBTheme`), `themes.xml`, `strings.xml`, `AndroidManifest.xml`, `accessibility_service_config.xml`, `app/build.gradle.kts`, `settings.gradle.kts` (`rootProject.name = "BubbleB"`), `.gitignore`, `scripts/*.sh`, `README.md`, `AGENTS.md`, `CHANGELOG.md`, mọi file trong `docs/`.
 **Lưu ý cài đặt:** applicationId mới `com.example.bubbleb`; phải gỡ APK cũ `com.example.contextbubble`, nếu không sẽ có hai app song song.
 **Build/test/lint/audit (sau đổi tên):** PASS — `./gradlew clean :app:assembleDebug :app:testDebugUnitTest :app:lint --no-build-cache` BUILD SUCCESSFUL; 71 tests, 0 failures; lint 0 errors, 1 warning (`OldTargetApi`, có chủ đích); `scripts/audit.sh` PASS. APK: package `com.example.bubbleb`, label `BubbleB`. Gate thiết bị M1 vẫn `DEVICE_VERIFICATION_PENDING`.
+
+## M2 — Screen snapshot + privacy guard
+
+**Modified files**
+- Mới (domain, thuần Kotlin): `domain/model/ScreenModels.kt` (AiAction, ScreenContext, ScreenElement, InputSnapshot, CaptureResult/Failure/Stats), `domain/text/TextLimits.kt`, `domain/capture/ScreenNode.kt`, `domain/capture/ScreenTreeReader.kt`, `domain/capture/CapturePreflight.kt`, `domain/privacy/Redactor.kt`, `domain/usecase/PayloadPreviewBuilder.kt` (+ `ScreenHeuristics`).
+- Mới (presentation/Android): `presentation/PanelState.kt`, `presentation/PanelCoordinator.kt`, `service/AccessibilityScreenCapture.kt`, `service/AccessibilityScreenNode.kt` (giải phóng node sau mỗi lần capture), `overlay/OverlayWindows.kt` (dùng chung cho bong bóng và panel), `overlay/PanelOverlayController.kt`, `ui/overlay/PanelContent.kt`, `res/drawable/ic_close.xml`.
+- Sửa: `BubbleAccessibilityService.kt` (chạm → capture → panel; đóng panel khi đổi app/khóa/xoay/ngắt service; bỏ Toast M1), `OverlayController.kt` (dùng `OverlayWindows`), `BubbleCoordinator.kt` (`isScreenLocked`), `AppConstants.kt` (`CaptureLimits`), `Repositories.kt` (`ScreenCaptureSource`), `strings.xml` (chuỗi panel/lỗi theo UI_UX), `accessibility_service_config.xml` (chú thích), `app/build.gradle.kts` (versionCode 2, versionName `0.2.0-m2`).
+- Tests mới: `ScreenFixtures`, `ScreenTreeReaderTest`, `CapturePreflightTest`, `RedactionTest`, `PayloadPreviewBuilderTest`, `PanelCoordinatorTest`, `PanelOverlayControllerTest` (Robolectric), `PanelContentTest` (Robolectric Compose), `NoNetworkAuditTest`.
+- Docs: `docs/TASKS.md` (chú thích M2), `docs/DECISIONS.md` (ADR-022…027, ADR-018 superseded), `docs/DEVELOPMENT.md` (§7 checklist thiết bị M2).
+
+**Build:** PASS — `./gradlew clean :app:assembleDebug :app:testDebugUnitTest :app:lint --no-build-cache` → BUILD SUCCESSFUL.
+**Unit tests:** PASS — 130 tests, 0 failures, 0 errors, 0 skipped (71 cũ + 59 mới).
+**Lint:** PASS — 0 errors, 1 warning (`OldTargetApi`, có chủ đích).
+**Instrumented/device tests:** NOT_RUN — emulator không chạy được (KVM lỗi), chưa có OnePlus Ace 5. `DEVICE_VERIFICATION_PENDING` cho cả M1 và M2.
+**Line-count audit:** PASS — file lớn nhất `BubbleAccessibilityService.kt` 187 dòng.
+**Security/privacy checks:** chỉ đọc màn hình khi người dùng chạm; kiểm tra package/khóa màn hình trước khi đọc text; mật khẩu → chặn; ẩn/không cùng package → bỏ; không log nội dung (stage-only, có test); không có API mạng trong `src/main` (có test); nút `Gửi đến AI` luôn disable ở M2; không thêm quyền mới (APK: `INTERNET` + quyền chữ ký nội bộ androidx.core).
+**Known limitations:** redaction là best-effort (regex, không đảm bảo che hết; có thể che dư số sau chữ "code"); tên app có thể hiện package name do package visibility trên Android 11+; app vẽ bằng canvas/WebView/FLAG_SECURE có thể không lộ text → `Không đọc được nội dung màn hình này`; phím Back hệ thống không đóng được panel (không focusable) — dùng nút X; chưa có lựa chọn ngôn ngữ đích cho "Dịch"; chưa có UI quản lý loại trừ (M5).
+**Next milestone prerequisites:** chạy checklist thiết bị M1 (`scripts/m1_device_check.sh`) và M2 (`docs/DEVELOPMENT.md` §7) trên emulator/OnePlus; người dùng yêu cầu bắt đầu M3 và cung cấp provider (base URL HTTPS/model) — API key do người dùng tự nhập trong app.

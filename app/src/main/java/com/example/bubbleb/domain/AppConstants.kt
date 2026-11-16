@@ -1,5 +1,7 @@
 package com.example.bubbleb.domain
 
+import com.example.bubbleb.domain.model.AiAction
+
 /** Version of the privacy disclosure the user must accept (SECURITY_PRIVACY.md §2). */
 object ConsentPolicy {
     const val CURRENT_VERSION: Int = 1
@@ -52,4 +54,21 @@ object ExclusionDefaults {
 /** Injectable wall clock so time-dependent logic stays testable. */
 fun interface Clock {
     fun nowMs(): Long
+}
+
+/**
+ * Bounds for one user-initiated snapshot (PRODUCT_SPEC.md §6). Single source of truth for caps;
+ * values are subject to device tuning.
+ */
+object CaptureLimits {
+    const val MAX_NODES: Int = 500
+    const val MAX_DEPTH: Int = 20
+    const val TIME_BUDGET_MS: Long = 300
+    const val MAX_NODE_CODE_POINTS: Int = 500
+    const val MAX_PAYLOAD_CODE_POINTS: Int = 6_000
+    const val MAX_REPLY_PAYLOAD_CODE_POINTS: Int = 3_000
+
+    /** Payload cap for the chosen action. */
+    fun payloadCapFor(action: AiAction): Int =
+        if (action == AiAction.REPLY) MAX_REPLY_PAYLOAD_CODE_POINTS else MAX_PAYLOAD_CODE_POINTS
 }
