@@ -1,4 +1,4 @@
-# ARCHITECTURE — ContextBubble v0.2
+# ARCHITECTURE — BubbleB v0.2
 
 ## 1. Architecture decision
 Single app process, one `AccessibilityService` providing one accessibility overlay. MainActivity hosts onboarding/settings and Android Sharesheet intake. UDF/MVVM; service is Android boundary and delegates orchestration to application-scoped controller; **do not instantiate an Activity-scoped ViewModel in the service**. No backend required for personal BYOK build. No continuous screen content collection.
@@ -23,8 +23,8 @@ flowchart TD
 ```text
 app/src/main/
   AndroidManifest.xml
-  java/com/example/contextbubble/
-    ContextBubbleApp.kt
+  java/com/example/bubbleb/
+    BubbleBApp.kt
     ui/main/                    # MainActivity; onboarding; settings; provider; app profiles
     ui/overlay/                 # Bubble, panel, results, previews and reusable widgets
     presentation/               # Coordinator/state/events; controllers (not activity-dependent)

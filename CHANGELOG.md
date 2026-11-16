@@ -1,11 +1,11 @@
-# CHANGELOG — ContextBubble v0.2
+# CHANGELOG — BubbleB v0.2
 
 ## M0 — Project scaffold & environment
 
 **Modified files**
 - Gradle: `settings.gradle.kts`, `build.gradle.kts`, `app/build.gradle.kts`, `gradle.properties`, `gradle/libs.versions.toml`, Gradle wrapper (`gradlew`, `gradlew.bat`, `gradle/wrapper/*`), `app/proguard-rules.pro`, `.gitignore`.
 - Manifest/resources: `AndroidManifest.xml` (chỉ `INTERNET` + khai báo AccessibilityService có `BIND_ACCESSIBILITY_SERVICE`), `res/xml/accessibility_service_config.xml`, `res/xml/network_security_config.xml` (cấm cleartext), `res/xml/data_extraction_rules.xml` (loại trừ backup), strings tiếng Việt, theme, launcher icon.
-- Kotlin: `ContextBubbleApp` (Hilt), theme Material 3, `MainActivity` + Navigation 3 (Dashboard, Provider settings), `DashboardViewModel` (MVVM/StateFlow), DataStore `DataStoreSettingsRepository` (chỉ dữ liệu không bí mật: phiên bản + thời điểm đồng ý, cờ bật bong bóng), Room skeleton (`AppProfileEntity`, `AppProfileDao`, `ContextBubbleDatabase`), Hilt module, `BubbleAccessibilityService` dạng khai báo (không làm gì).
+- Kotlin: `BubbleBApp` (Hilt), theme Material 3, `MainActivity` + Navigation 3 (Dashboard, Provider settings), `DashboardViewModel` (MVVM/StateFlow), DataStore `DataStoreSettingsRepository` (chỉ dữ liệu không bí mật: phiên bản + thời điểm đồng ý, cờ bật bong bóng), Room skeleton (`AppProfileEntity`, `AppProfileDao`, `BubbleBDatabase`), Hilt module, `BubbleAccessibilityService` dạng khai báo (không làm gì).
 - Tests: `ManifestAuditTest`, `DataStoreSettingsRepositoryTest`, `AppProfileDaoTest`, `DashboardViewModelTest`, `DashboardContentTest`.
 - Docs/scripts: `docs/DEVELOPMENT.md`, `CHANGELOG.md`, `scripts/audit.sh`, cập nhật `docs/TASKS.md`, `docs/DECISIONS.md`, `README.md`.
 
@@ -36,3 +36,9 @@
 **Security/privacy checks:** service không đọc text, không gọi mạng, chỉ đọc package của root; log chỉ ghi stage (không package/nội dung); không thêm quyền; không `SYSTEM_ALERT_WINDOW`; không `flagRetrieveInteractiveWindows`; overlay bị gỡ khi service ngắt.
 **Known limitations:** hành vi overlay/IME/khóa màn hình/OEM chưa kiểm chứng trên thiết bị; danh sách app nhạy cảm là best-effort; chạm bong bóng chỉ hiện Toast (capture ở M2); chưa có UI quản lý loại trừ (M5).
 **Next milestone prerequisites:** chạy `scripts/m1_device_check.sh` + checklist thủ công trên emulator/OnePlus và ghi kết quả; xác nhận ADR-005 (ComposeView trong overlay) ổn định; người dùng yêu cầu bắt đầu M2.
+
+## Rename — ContextBubble → BubbleB (ADR-021)
+
+**Modified files:** toàn bộ package `com.example.contextbubble` → `com.example.bubbleb` (main + test, chuyển thư mục), `BubbleBApp.kt`, `BubbleBDatabase.kt`, `Theme.kt` (`BubbleBTheme`), `themes.xml`, `strings.xml`, `AndroidManifest.xml`, `accessibility_service_config.xml`, `app/build.gradle.kts`, `settings.gradle.kts` (`rootProject.name = "BubbleB"`), `.gitignore`, `scripts/*.sh`, `README.md`, `AGENTS.md`, `CHANGELOG.md`, mọi file trong `docs/`.
+**Lưu ý cài đặt:** applicationId mới `com.example.bubbleb`; phải gỡ APK cũ `com.example.contextbubble`, nếu không sẽ có hai app song song.
+**Build/test/lint/audit (sau đổi tên):** PASS — `./gradlew clean :app:assembleDebug :app:testDebugUnitTest :app:lint --no-build-cache` BUILD SUCCESSFUL; 71 tests, 0 failures; lint 0 errors, 1 warning (`OldTargetApi`, có chủ đích); `scripts/audit.sh` PASS. APK: package `com.example.bubbleb`, label `BubbleB`. Gate thiết bị M1 vẫn `DEVICE_VERIFICATION_PENDING`.

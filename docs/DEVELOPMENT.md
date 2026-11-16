@@ -1,4 +1,4 @@
-# DEVELOPMENT — hướng dẫn build ContextBubble (README kỹ thuật)
+# DEVELOPMENT — hướng dẫn build BubbleB (README kỹ thuật)
 
 ## 1. Phiên bản thực tế đã dùng để build (đã xác minh trên máy build Linux, 2026-11-16)
 
@@ -65,5 +65,5 @@ Script chỉ là test harness (dùng `adb shell settings put secure ...`), khôn
 ## 7. Quyền trong APK đã merge
 Kiểm tra bằng `aapt2 dump permissions app/build/outputs/apk/debug/app-debug.apk`:
 - `android.permission.INTERNET` (khai báo trực tiếp, dùng từ M3).
-- `com.example.contextbubble.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`: quyền chữ ký nội bộ do `androidx.core` tự thêm để hỗ trợ đăng ký receiver không export trên API < 33; không phải quyền nhạy cảm và không hiển thị cho người dùng.
+- `com.example.bubbleb.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`: quyền chữ ký nội bộ do `androidx.core` tự thêm để hỗ trợ đăng ký receiver không export trên API < 33; không phải quyền nhạy cảm và không hiển thị cho người dùng.
 - Không có `SYSTEM_ALERT_WINDOW`, `QUERY_ALL_PACKAGES`, quyền micro/danh bạ/bộ nhớ.

@@ -1,4 +1,4 @@
-# UI_UX — ContextBubble v0.2
+# UI_UX — BubbleB v0.2
 
 ## Design direction
 - Vietnamese-first; clean, cool neutral surfaces with single blue accent, Material 3; dark/light theme.
@@ -39,7 +39,7 @@
 - Do not overlay sensitive/excluded apps or Android lock UI. Position within usable viewport, including IME.
 
 ### Action panel
-- Header `ContextBubble · {app label}`, close X.
+- Header `BubbleB · {app label}`, close X.
 - Top status: `Đã đọc {N} ký tự` or unavailable notice.
 - Four action buttons: `Trả lời`, `Tóm tắt`, `Giải thích`, `Dịch`; Reply disabled if no reliable input/conversation context.
 - `Chia sẻ đoạn văn bản` hint where reader cannot access text.
@@ -79,7 +79,7 @@
 - When user switches app while panel open, immediately clear context and close panel. Do not insert into newly focused app.
 - Copy preserves the original generated text and shows system clipboard feedback.
 - Use `Back`/outside tap according to overlay implementation constraints; always provide explicit close.
-- Accessibility labels for bubble (`Mở ContextBubble`), action buttons and status notifications.
+- Accessibility labels for bubble (`Mở BubbleB`), action buttons and status notifications.
 
 ## 4. UI implementation note
 ComposeView within service must be wired to lifecycle/ViewModelStore/SavedStateRegistry tree owners **before attached to WindowManager**, with composition disposed on release. Rendering should observe state from an application-scoped controller rather than assuming an Activity ViewModel is available.

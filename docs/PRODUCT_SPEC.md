@@ -1,4 +1,4 @@
-# PRODUCT_SPEC — ContextBubble v0.2
+# PRODUCT_SPEC — BubbleB v0.2
 
 **Version:** 0.2 · **Date:** 2026-11-16 · **Product:** Android floating AI utility · **Audience:** personal Android user · **Status:** implementation-ready specification, requires device validation
 
@@ -30,7 +30,7 @@ While using Android apps (web, chat, docs), user wants context-aware support wit
 - Actions `Copy`, `Retry` (requires confirmation of new request), `Insert` only where safely supported, `Close`.
 - User-specified OpenAI-style Chat Completions provider `baseUrl`, `model`, `apiKey`; connection test; usage estimate; no background auto-calls.
 - Per-app profile: enabled/excluded, one selected persona, language, extra instruction; defaults only suggestions based on identified package, user can override.
-- Manual share-to-ContextBubble for `text/plain` and shared URLs as fallback (share flow opens app/sheet, no assumption overlay active).
+- Manual share-to-BubbleB for `text/plain` and shared URLs as fallback (share flow opens app/sheet, no assumption overlay active).
 - Blocked screen states; redaction and explicit payload preview. No disk history and no unapproved content submission.
 
 ### P1 — later v0.3, **not MVP**
@@ -65,7 +65,7 @@ While using Android apps (web, chat, docs), user wants context-aware support wit
 **AC:** no existing draft lost. In case of uncertainty, copy/manual paste instead of destructive action.
 
 ### J4 — Share selected text
-1. From any app exposing Android Sharesheet, user selects text and shares to ContextBubble.
+1. From any app exposing Android Sharesheet, user selects text and shares to BubbleB.
 2. `ACTION_SEND`, MIME `text/plain`; received text is previewed and processed through same privacy and send confirmation workflow.
 3. Unsupported MIME, huge payload, empty text → graceful error; do not import attachments or persist shared text.
 **AC:** user can summarize selected text without Accessibility service enabled.

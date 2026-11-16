@@ -1,8 +1,8 @@
-# ContextBubble v0.2 — Android AI Context Utility
+# BubbleB v0.2 — Android AI Context Utility
 
 **Trạng thái:** Specifications ready for implementation · **Ngày:** 2026-11-16 · **Ngôn ngữ:** Vietnamese
 
-ContextBubble là bong bóng tiện ích Android: người dùng **chủ động chạm** để trích xuất văn bản được hỗ trợ từ ứng dụng đang hiển thị, lựa chọn hành động AI (Reply / Summarize / Explain / Translate), xem kết quả trong panel và **tự xác nhận** trước khi sao chép/chèn nội dung. Có persona theo ứng dụng, đa nhà cung cấp LLM và phương án Android Share để xử lý đoạn văn bản được chọn.
+BubbleB là bong bóng tiện ích Android: người dùng **chủ động chạm** để trích xuất văn bản được hỗ trợ từ ứng dụng đang hiển thị, lựa chọn hành động AI (Reply / Summarize / Explain / Translate), xem kết quả trong panel và **tự xác nhận** trước khi sao chép/chèn nội dung. Có persona theo ứng dụng, đa nhà cung cấp LLM và phương án Android Share để xử lý đoạn văn bản được chọn.
 
 ## Đọc trước khi code
 

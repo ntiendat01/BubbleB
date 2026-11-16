@@ -1,4 +1,4 @@
-# AGENTS.md — ContextBubble development rules (mandatory)
+# AGENTS.md — BubbleB development rules (mandatory)
 
 ## 0. Priority and scope
 - Read this file, `docs/PRODUCT_SPEC.md`, `docs/ARCHITECTURE.md`, `docs/SECURITY_PRIVACY.md`, and current milestone in `docs/TASKS.md` **before edits**.

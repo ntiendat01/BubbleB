@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# ContextBubble milestone audit (AGENTS.md §1, §3, §8):
+# BubbleB milestone audit (AGENTS.md §1, §3, §8):
 #  1. No human-authored source/config/test/script file over 500 physical lines (target <= 300).
 #  2. No obvious hardcoded secrets.
 #  3. No cleartext http:// endpoints in sources/config.

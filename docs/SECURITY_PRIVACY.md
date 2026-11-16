@@ -2,14 +2,14 @@
 
 ## 1. Trust boundaries
 1. Android app under observation (untrusted screen text).
-2. ContextBubble local process (sensitive screen data, app choices, keys).
+2. BubbleB local process (sensitive screen data, app choices, keys).
 3. User-configured external LLM provider (remote third party; privacy policy may differ).
 4. Android Clipboard (system-visible copied text, not a private vault).
 
 **Privacy invariant:** No screen-text capture without explicit tap/Share; no remote upload until visible payload review + explicit Send confirmation; no screen text on disk/logs.
 
 ## 2. User disclosure (show BEFORE enabling Accessibility)
-> ContextBubble có thể đọc văn bản và thông tin giao diện đang hiển thị trên ứng dụng khác khi bạn chạm bong bóng. Bạn sẽ được xem trước và xác nhận nội dung trước khi gửi đến nhà cung cấp AI đã chọn. ContextBubble không tự gửi tin nhắn, không lưu nội dung màn hình và bạn có thể tắt quyền bất cứ lúc nào trong Cài đặt Android. Một số ứng dụng hoặc màn hình không cho phép đọc nội dung.
+> BubbleB có thể đọc văn bản và thông tin giao diện đang hiển thị trên ứng dụng khác khi bạn chạm bong bóng. Bạn sẽ được xem trước và xác nhận nội dung trước khi gửi đến nhà cung cấp AI đã chọn. BubbleB không tự gửi tin nhắn, không lưu nội dung màn hình và bạn có thể tắt quyền bất cứ lúc nào trong Cài đặt Android. Một số ứng dụng hoặc màn hình không cho phép đọc nội dung.
 
 Require consent checkbox/tap after scroll/read; persist only notice version+timestamp (not screen data). Refusal keeps Accessibility off, Share mode available.
 

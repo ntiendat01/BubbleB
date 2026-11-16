@@ -34,7 +34,7 @@ google-services.json
 # Android Profiling
 *.hprof
 
-# ContextBubble: never commit secrets or machine-local SDK paths
+# BubbleB: never commit secrets or machine-local SDK paths
 secrets.properties
 *.env
 /app/release/

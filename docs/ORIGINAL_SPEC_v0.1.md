@@ -1,4 +1,6 @@
-# Spec: ContextBubble – Bong bóng AI đọc ngữ cảnh màn hình
+# Spec: BubbleB – Bong bóng AI đọc ngữ cảnh màn hình
+
+> **Ghi chú lịch sử:** đây là bản đặc tả gốc v0.1, giữ nguyên nội dung để truy vết. Chỉ tên sản phẩm được cập nhật thành BubbleB theo ADR-021 (`docs/DECISIONS.md`); mọi yêu cầu khác của v0.1 đã được v0.2 thay thế.
 
 *Phiên bản 0.1 · 16/11/2026 · Kotlin + Jetpack Compose + MVVM · Dự án nghịch cá nhân*
 
@@ -48,7 +50,7 @@ Nguyên tắc thiết kế:
 ## 5. Cấu trúc project
 
 ```
-app/src/main/java/com/you/contextbubble/
+app/src/main/java/com/you/bubbleb/
 ├── ui/
 │   ├── main/            # MainActivity, onboarding, settings (Compose)
 │   └── overlay/         # BubbleOverlay, ActionPanel, ResultCard (Compose)

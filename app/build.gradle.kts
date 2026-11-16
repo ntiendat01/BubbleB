@@ -7,11 +7,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.contextbubble"
+    namespace = "com.example.bubbleb"
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "com.example.contextbubble"
+        applicationId = "com.example.bubbleb"
         minSdk = 26
         targetSdk = 36
         versionCode = 1

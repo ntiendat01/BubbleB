@@ -10,7 +10,7 @@
 # Usage: scripts/m1_device_check.sh
 set -euo pipefail
 
-PKG=com.example.contextbubble
+PKG=com.example.bubbleb
 SVC="$PKG/$PKG.service.BubbleAccessibilityService"
 CYCLES=${CYCLES:-20}
 fail=0
@@ -20,8 +20,8 @@ echo "Device: $(adb shell getprop ro.product.model | tr -d '\r') / SDK $(adb she
 prev_services=$(adb shell settings get secure enabled_accessibility_services | tr -d '\r')
 adb logcat -c
 
-# Overlay window title is exactly "ContextBubble" (activity windows use the lowercase package name).
-overlay_present() { adb shell dumpsys window windows | grep -cE 'Window\{[0-9a-f]+ u[0-9]+ ContextBubble\}' || true; }
+# Overlay window title is exactly "BubbleB" (activity windows use the lowercase package name).
+overlay_present() { adb shell dumpsys window windows | grep -cE 'Window\{[0-9a-f]+ u[0-9]+ BubbleB\}' || true; }
 
 enable_service() {
   adb shell settings put secure enabled_accessibility_services "$SVC"
@@ -56,7 +56,7 @@ if adb logcat -d | grep -E "FATAL EXCEPTION|ANR in $PKG" | grep -q .; then
 else
   echo "No FATAL EXCEPTION / ANR for $PKG"
 fi
-echo "Stage log (no content): "; adb logcat -d -s CB/Service:I CB/Overlay:I | tail -10
+echo "Stage log (no content): "; adb logcat -d -s BB/Service:I BB/Overlay:I | tail -10
 
 # Restore previous accessibility services setting.
 if [ -n "$prev_services" ] && [ "$prev_services" != "null" ]; then

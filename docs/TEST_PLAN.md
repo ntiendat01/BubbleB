@@ -1,4 +1,4 @@
-# TEST_PLAN — ContextBubble v0.2
+# TEST_PLAN — BubbleB v0.2
 
 ## Test environment
 - Android emulator/API corresponding to supported range (minSdk 26 + current emulator stable).

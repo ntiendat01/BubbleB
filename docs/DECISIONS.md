@@ -55,10 +55,17 @@ Bong bóng chỉ hiện khi: service thực sự connected **và** người dùn
 M1 là proof-of-concept: chạm chỉ hiện Toast thông báo; không capture, không mở panel, không gọi mạng (capture thuộc M2). `onInterrupt` không có việc gì để hủy ở M1; từ M2 sẽ hủy job capture/LLM tại đây.
 
 ## ADR-019: Kéo thả dùng toạ độ raw qua `View.OnTouchListener` — accepted (M1)
-Delta của Compose pointer input tính theo toạ độ cục bộ của cửa sổ đang di chuyển nên bị nhiễu; vì vậy kéo thả dùng `MotionEvent.rawX/rawY` trong `BubbleDragTracker` (thuần Kotlin, có unit test). Compose chỉ vẽ bong bóng và cung cấp nhãn TalkBack `Mở ContextBubble` + hành động click. Cửa sổ dùng `FLAG_NOT_FOCUSABLE | FLAG_NOT_TOUCH_MODAL | FLAG_LAYOUT_IN_SCREEN`, không dùng `FLAG_LAYOUT_NO_LIMITS`. Vị trí lưu dạng (cạnh, tỉ lệ dọc) để giữ đúng sau xoay màn hình.
+Delta của Compose pointer input tính theo toạ độ cục bộ của cửa sổ đang di chuyển nên bị nhiễu; vì vậy kéo thả dùng `MotionEvent.rawX/rawY` trong `BubbleDragTracker` (thuần Kotlin, có unit test). Compose chỉ vẽ bong bóng và cung cấp nhãn TalkBack `Mở BubbleB` + hành động click. Cửa sổ dùng `FLAG_NOT_FOCUSABLE | FLAG_NOT_TOUCH_MODAL | FLAG_LAYOUT_IN_SCREEN`, không dùng `FLAG_LAYOUT_NO_LIMITS`. Vị trí lưu dạng (cạnh, tỉ lệ dọc) để giữ đúng sau xoay màn hình.
 
 ## ADR-020: IME — best-effort — accepted, needs device proof (M1)
 Không xin `flagRetrieveInteractiveWindows` nên không liệt kê được cửa sổ IME. Vùng an toàn trừ IME inset nếu `WindowMetrics` (API 30+) hoặc insets của chính view overlay báo về; nếu OEM không báo, bong bóng có thể đè lên bàn phím và người dùng kéo nó đi. Cần kiểm chứng trên OnePlus.
+
+## ADR-021: Đổi tên sản phẩm thành BubbleB — accepted (2026-11-16)
+Theo yêu cầu của chủ dự án, tên sản phẩm "ContextBubble" đổi thành **BubbleB** trong toàn bộ mã nguồn, tài nguyên, script và tài liệu (kể cả đặc tả gốc v0.1, có ghi chú lịch sử ở đầu file). Thay đổi kỹ thuật:
+- `applicationId`/`namespace`/package Kotlin: `com.example.contextbubble` → `com.example.bubbleb`. Đây là **ứng dụng khác** đối với Android: bản APK cũ không được nâng cấp mà cài song song; cần gỡ bản cũ (dữ liệu cũ chỉ có đồng ý + vị trí bong bóng, không chuyển đổi).
+- Lớp: `ContextBubbleApp` → `BubbleBApp`, `ContextBubbleDatabase` → `BubbleBDatabase`, `ContextBubbleTheme` → `BubbleBTheme`, theme XML `Theme.BubbleB`.
+- File dữ liệu: Room `bubbleb.db`, DataStore `bubbleb_settings`; tiêu đề cửa sổ overlay `BubbleB`; log tag `BB/…`.
+- Tên cũ chỉ còn xuất hiện trong ADR này và mục đổi tên của `CHANGELOG.md` để truy vết.
 
 ## Open device-validation questions
 - Accessibility service overlay remains usable across OxygenOS 16 lock/unlock, memory pressure and background cleanup? Track actual behavior; do not assume.

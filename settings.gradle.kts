@@ -26,6 +26,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "ContextBubble"
+rootProject.name = "BubbleB"
 
 include(":app")
